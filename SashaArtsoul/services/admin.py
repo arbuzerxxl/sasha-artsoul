@@ -5,8 +5,6 @@ from .models import Service, Client, Master, Visit, Discount
 admin.site.register(Service)
 admin.site.register(Client)
 admin.site.register(Master)
-# admin.site.register(Visit)
-# admin.site.register(Discount)
 
 
 @admin.register(Discount)

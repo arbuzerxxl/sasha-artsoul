@@ -4,6 +4,13 @@ from django.urls import reverse
 # Create your models here.
 
 
+class ServiceManager(models.Manager):
+
+    def create_service(self, name):
+        service = self.create(name=name)
+        return service
+
+
 class Service(models.Model):
     MANICURE = 'Маникюр'
     MANICURE_WITH_COATING = 'Маникюр с покрытием'
@@ -39,6 +46,8 @@ class Service(models.Model):
     name = models.CharField(max_length=30, choices=TYPE_OF_SERVICES_CHOICES, unique=True, verbose_name='Услуга', help_text='Выберите услугу')
 
     value = models.IntegerField(editable=False, verbose_name='Стоимость услуги')
+    
+    objects = ServiceManager()
 
     def __str__(self) -> str:
         return self.name
@@ -94,6 +103,13 @@ class Master(models.Model):
         return self.second_name + ' ' + self.first_name
 
 
+class DiscountManager(models.Manager):
+    
+    def create_discount(self, name):
+        discount = self.create(name=name)
+        return discount
+
+
 class Discount(models.Model):
     FIRST_VISIT = 'Первый визит'
     SIX_VISIT = 'Шестой визит'
@@ -113,6 +129,8 @@ class Discount(models.Model):
 
     name = models.CharField(max_length=15, choices=DISCOUNT_CHOICES, verbose_name='Тип скидки', help_text='Выберите тип скидки', unique=True)
     value = models.FloatField(editable=False, verbose_name='Значение скидки')
+    
+    objects = DiscountManager()
 
     def __str__(self) -> str:
         return self.name

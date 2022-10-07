@@ -18,7 +18,8 @@ from django.contrib import admin
 from django.urls import path
 from services import views
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.index, name='home')
-]
+
+urlpatterns = [path('insert_data/', views.insert_data, name='insert_data'),
+               path('admin/', admin.site.urls),
+               path('', views.index, name='index')
+               ]
