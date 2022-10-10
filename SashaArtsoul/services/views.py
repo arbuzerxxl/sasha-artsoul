@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Visit, Client, Master, Discount, Service
+from django.contrib.auth.models import User
 
 
 def index(request):

@@ -24,6 +24,18 @@
                 
                 {% block sidebar %}
                     <ul class="sidebar-nav">
+                        <!-- Вход в учетную запись -->
+                        {% if user.is_staff %}
+                            <li>Админ: {{ user.get_username }}</li>
+                            <li><a href="/admin">Админка</a></li>
+                            <li><a href="{% url 'logout' %}?next={{ request.path }}">Выход</a></li>
+                        {% elif user.is_authenticated %}
+                            <li>Пользователь: {{ user.get_username }}</li>
+                            <li><a href="{% url 'logout' %}?next={{ request.path }}">Выход</a></li>
+                        {% else %}
+                            <li><a href="{% url 'login' %}?next={{ request.path }}">Вход</a></li>
+                        {% endif %}
+
                         <li><a href="{% url 'index' %}">Главная страница</a></li>
                         <li><a href="">Услуги</a></li>
                         <li><a href="">Прайс</a></li>
@@ -41,7 +53,7 @@
                 {% block footer %}
                 
                 {% block copyright %}
-                    <p>Copyright ИП Заборовская Александра, ОГРН: "", 2022. Все права защищены.</p>
+                    <p class="sidebar-nav">Copyright ИП Заборовская Александра, ОГРН: "", 2022. Все права защищены.</p>
                 {% endblock copyright %}
                 
                 {% endblock footer %}

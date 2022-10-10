@@ -1,10 +1,11 @@
 from django.contrib import admin
-from .models import Service, Client, Master, Visit, Discount
+from .models import Service, Client, Master, Visit, Discount, User
 
 # Register your models here.
 admin.site.register(Service)
 admin.site.register(Client)
 admin.site.register(Master)
+admin.site.register(User)
 
 
 @admin.register(Discount)
