@@ -1,17 +1,13 @@
 from django.db import models
-from django.urls import reverse
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from .validators import PhoneNumberValidator
-from django.apps import apps
 from django.contrib import auth
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-# Create your models here.
 
 
 class ServiceManager(models.Manager):
@@ -56,8 +52,12 @@ class Service(models.Model):
     name = models.CharField(max_length=30, choices=TYPE_OF_SERVICES_CHOICES, unique=True, verbose_name='Услуга', help_text='Выберите услугу')
 
     value = models.IntegerField(editable=False, verbose_name='Стоимость услуги')
-    
+
     objects = ServiceManager()
+
+    class Meta:
+        verbose_name = _("Услуга")
+        verbose_name_plural = ("Услуги")
 
     def __str__(self) -> str:
         return self.name
@@ -78,16 +78,15 @@ class Client(models.Model):
         (FIRST_VISIT_CLIENT, 'Первый визит'),
     ]
 
-    first_name = models.CharField(max_length=40, verbose_name='Имя', help_text='Введите имя')
-    second_name = models.CharField(max_length=40, verbose_name='Фамилия', help_text='Введите фамилию')
-    age = models.PositiveSmallIntegerField(verbose_name='Возраст', help_text='Введите возраст', null=True, blank=True)
-    phone_number = models.CharField(max_length=18, verbose_name='Номер телефона', help_text='Введите номер телефона')
-    date_of_birth = models.DateField(verbose_name='Дата рождения', help_text='Введите дату рождения', null=True, blank=True)
-    date_of_first_visit = models.DateField(verbose_name='Дата первого визита', help_text='Введите дату первого визита', null=True, blank=True)
+    user = models.OneToOneField('User', on_delete=models.CASCADE, help_text='Укажите зарегистрированного пользователя', verbose_name='Клиент')
     client_type = models.CharField(max_length=20, choices=CLIENT_CHOICES, verbose_name='Тип клиента', help_text='Введите тип клиента')
 
+    class Meta:
+        verbose_name = _("Клиент")
+        verbose_name_plural = ("Клиенты")
+
     def __str__(self) -> str:
-        return self.second_name + ' ' + self.first_name
+        return self.user.last_name + ' ' + self.user.first_name
 
 
 class Master(models.Model):
@@ -101,20 +100,20 @@ class Master(models.Model):
         (STUDENT_MASTER, 'Ученик'),
     ]
 
-    first_name = models.CharField(max_length=40, verbose_name='Имя', help_text='Введите имя')
-    second_name = models.CharField(max_length=40, verbose_name='Фамилия', help_text='Введите фамилию')
-    age = models.PositiveSmallIntegerField(verbose_name='Возраст', help_text='Введите возраст', null=True, blank=True)
-    phone_number = models.CharField(max_length=17, verbose_name='Номер телефона', help_text='Введите номер телефона')
-    date_of_birth = models.DateField(verbose_name='Дата рождения', help_text='Введите дату рождения', null=True, blank=True)
+    user = models.OneToOneField('User', on_delete=models.CASCADE, help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер')
     qualification = models.CharField(max_length=15, choices=MASTER_CHOICES, verbose_name='Квалификация мастера',
                                      help_text='Выберите квалификалицию', null=True, blank=True)
 
+    class Meta:
+        verbose_name = _("Мастер")
+        verbose_name_plural = ("Мастера")
+
     def __str__(self) -> str:
-        return self.second_name + ' ' + self.first_name
+        return self.user.last_name + ' ' + self.user.first_name
 
 
 class DiscountManager(models.Manager):
-    
+
     def create_discount(self, name):
         discount = self.create(name=name)
         return discount
@@ -139,8 +138,12 @@ class Discount(models.Model):
 
     name = models.CharField(max_length=15, choices=DISCOUNT_CHOICES, verbose_name='Тип скидки', help_text='Выберите тип скидки', unique=True)
     value = models.FloatField(editable=False, verbose_name='Значение скидки')
-    
+
     objects = DiscountManager()
+
+    class Meta:
+        verbose_name = _("Скидка")
+        verbose_name_plural = ("Скидки")
 
     def __str__(self) -> str:
         return self.name
@@ -177,7 +180,7 @@ class Visit(models.Model):
     visit_date = models.DateTimeField(help_text='Укажите дату и время записи', verbose_name='Дата и время записи')
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, help_text='Выберите статус записи', verbose_name='Статус записи')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, help_text='Выберите тип услуги', verbose_name='Тип услуги')
-    client = models.ForeignKey('Client', on_delete=models.CASCADE, help_text='Укажите клиента', verbose_name='Клиент')
+    client = models.ForeignKey('Client', on_delete=models.PROTECT, help_text='Укажите клиента', verbose_name='Клиент', null=True, blank=False)
     master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите мастера', verbose_name='Мастер')
     service_price = models.PositiveSmallIntegerField(editable=False, verbose_name='Стоимость услуги')
     discount = models.ForeignKey('Discount', on_delete=models.CASCADE, help_text='Выберите тип скидки', verbose_name='Тип скидки')
@@ -188,6 +191,8 @@ class Visit(models.Model):
                                               verbose_name='Ваша оценка', null=True, blank=True)
 
     class Meta:
+        verbose_name = _("Запись")
+        verbose_name_plural = ("Записи")
         constraints = [models.UniqueConstraint(fields=['visit_date', 'status'], name='unique_status'),
                        models.UniqueConstraint(fields=['visit_date', 'client'], name='unique_client'),
                        models.UniqueConstraint(fields=['visit_date', 'master'], name='unique_master')]
@@ -284,8 +289,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         },
         verbose_name='Номер телефона'
     )
-    first_name = models.CharField(_("first name"), max_length=150, blank=True)
-    last_name = models.CharField(_("last name"), max_length=150, blank=True)
+    first_name = models.CharField(_("first name"), max_length=150, null=True, blank=False)
+    last_name = models.CharField(_("last name"), max_length=150, null=True, blank=False)
     email = models.EmailField(_("email address"), blank=True)
     is_staff = models.BooleanField(
         _("staff status"),
@@ -306,7 +311,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ["email"]
+    REQUIRED_FIELDS = ["last_name", "first_name", "email"]
 
     class Meta:
         verbose_name = _("user")

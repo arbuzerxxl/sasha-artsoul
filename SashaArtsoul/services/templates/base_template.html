@@ -8,58 +8,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Добавление статического CSS-файла -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    
-    {% block head %}
-        <img src="{% static 'images/logo_100.png' %}" alt="Скачанный логотип"
-        align="absmiddle">
-        <font size="12" color="blue">Sasha.Artsoul</font>
-    {% endblock head %}        
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}"> 
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-2">
-                
-                {% block sidebar %}
-                    <ul class="sidebar-nav">
-                        <!-- Вход в учетную запись -->
-                        {% if user.is_staff %}
-                            <li>Админ: {{ user.get_username }}</li>
-                            <li><a href="/admin">Админка</a></li>
-                            <li><a href="{% url 'logout' %}?next={{ request.path }}">Выход</a></li>
-                        {% elif user.is_authenticated %}
-                            <li>Пользователь: {{ user.get_username }}</li>
-                            <li><a href="{% url 'logout' %}?next={{ request.path }}">Выход</a></li>
-                        {% else %}
-                            <li><a href="{% url 'login' %}?next={{ request.path }}">Вход</a></li>
-                        {% endif %}
-
-                        <li><a href="{% url 'index' %}">Главная страница</a></li>
-                        <li><a href="">Услуги</a></li>
-                        <li><a href="">Прайс</a></li>
-                        <li><a href="">Отзывы</a></li>
-                        <li><a href="">О нас</a></li>
-                        <li><a href="">Контакты</a></li>
-                        <li><a href="{% url 'insert_data' %}">Добавить данные в базу</a></li>
-                    </ul>
-                {% endblock sidebar %}
-            </div>
-            <div class="col-sm-10">
-                
-                {% block content %}{% endblock content %}
-                
-                {% block footer %}
-                
-                {% block copyright %}
-                    <p class="sidebar-nav">Copyright ИП Заборовская Александра, ОГРН: "", 2022. Все права защищены.</p>
-                {% endblock copyright %}
-                
-                {% endblock footer %}
-                    
-            </div>
-        </div>
-    </div>
+    <header>
+        <h1>Sasha.Artsoul</h1>
+    </header>
+     
+    {% block navigation %}            
+    <nav>
+        {% if user.is_authenticated %}
+            <h2>Пользователь: {{ user.get_username }}</h2>
+            <a href="{% url 'logout' %}?next={{ request.path }}">Выход</a>
+        {% if user.is_staff %}
+            <a href="/admin">Админка</a>
+        {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}">Вход</a>
+        {% endif %}
+        <a href="{% url 'index' %}">Главная</a>
+        <a href="">Услуги</a>
+        <a href="">Прайс</a>
+        <a href="">Отзывы</a>
+        <a href="">О нас</a>
+        <a href="">Контакты</a>
+        <a href="{% url 'insert_data' %}">Insert data</a>
+    </nav>
+    {% endblock navigation %}
+    
+    <section>    
+        {% block content %}{% endblock content %}
+    <section>
+    <footer>
+        {% block footer %}
+        
+        {% block copyright %}
+            <p>Copyright ИП Заборовская Александра, ОГРН: "", 2022. Все права защищены.</p>
+        {% endblock copyright %}
+        
+        {% endblock footer %}
+    </footer>
 </body>
 </html>
