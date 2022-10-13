@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+from django.forms import ValidationError
 from .validators import PhoneNumberValidator
 from django.contrib import auth
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 
@@ -180,7 +182,7 @@ class Visit(models.Model):
     visit_date = models.DateTimeField(help_text='Укажите дату и время записи', verbose_name='Дата и время записи')
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, help_text='Выберите статус записи', verbose_name='Статус записи')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, help_text='Выберите тип услуги', verbose_name='Тип услуги')
-    client = models.ForeignKey('Client', on_delete=models.PROTECT, help_text='Укажите клиента', verbose_name='Клиент', null=True, blank=False)
+    client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Укажите клиента', verbose_name='Клиент', null=True, blank=False)
     master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите мастера', verbose_name='Мастер')
     service_price = models.PositiveSmallIntegerField(editable=False, verbose_name='Стоимость услуги')
     discount = models.ForeignKey('Discount', on_delete=models.CASCADE, help_text='Выберите тип скидки', verbose_name='Тип скидки')
@@ -223,6 +225,7 @@ class UserManager(BaseUserManager):
         if not phone_number:
             raise ValueError("Пользователь должен иметь номер телефона")
         email = self.normalize_email(email)
+
         phone_number = phone_number
         user = self.model(phone_number=phone_number, email=email, **extra_fields)
         user.set_password(password)
@@ -321,6 +324,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def clean(self):
         super().clean()
+        self.phone_number = self.make_correct_phone_number(self.phone_number)
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
@@ -338,7 +342,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    def make_correct_phone_number(self, phone_number):
+        pn_regex = PhoneNumberValidator().regex
+        matched = pn_regex.search(phone_number)
+        return "+7" + f' ({matched[2]}) ' + f'{matched[3]}' + f'-{matched[4]}-' + f'{matched[5]}'
+
     def save(self, *args, **kwargs):
+
         if not self.id and not self.is_staff and not self.is_superuser:
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
