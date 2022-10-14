@@ -1,3 +1,5 @@
+from random import choices
+from tabnanny import check
 from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
@@ -10,205 +12,123 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.db.models.functions import Length
 
 
-class ServiceManager(models.Manager):
-
-    def create_service(self, name):
-        service = self.create(name=name)
-        return service
-
-
-class Service(models.Model):
-    MANICURE = 'Маникюр'
-    MANICURE_WITH_COATING = 'Маникюр с покрытием'
-    CORRECTION = 'Коррекция'
-    BUILD_UP = 'Наращивание'
-    FRENCH = 'Френч'
-
-    PEDICURE = 'Педикюр'
-    PEDICURE_WITH_COATING_FOOT = 'Педикюр с покрытием (стопа)'
-    PEDICURE_WITH_COATING_FINGERS = 'Педикюр с покрытием (пальчики)'
-
-    TYPE_OF_SERVICES_CHOICES = [(MANICURE, 'Маникюр'),
-                                (MANICURE_WITH_COATING, 'Маникюр с покрытием'),
-                                (CORRECTION, 'Коррекция'),
-                                (BUILD_UP, 'Наращивание'),
-                                (FRENCH, 'Френч'),
-                                (PEDICURE, 'Педикюр'),
-                                (PEDICURE_WITH_COATING_FOOT, 'Педикюр с покрытием (стопа)'),
-                                (PEDICURE_WITH_COATING_FINGERS, 'Педикюр с покрытием (пальчики)'),
-                                ]
-
-    SERVICES_PRICE = {
-        'Маникюр': 1000,
-        'Маникюр с покрытием': 2000,
-        'Коррекция': 2800,
-        'Наращивание': 3800,
-        'Френч': 2500,
-        'Педикюр': 2600,
-        'Педикюр с покрытием (стопа)': 3000,
-        'Педикюр с покрытием (пальчики)': 2300
-    }
-
-    name = models.CharField(max_length=30, choices=TYPE_OF_SERVICES_CHOICES, unique=True, verbose_name='Услуга', help_text='Выберите услугу')
-
-    value = models.IntegerField(editable=False, verbose_name='Стоимость услуги')
-
-    objects = ServiceManager()
-
-    class Meta:
-        verbose_name = _("Услуга")
-        verbose_name_plural = ("Услуги")
-
-    def __str__(self) -> str:
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.value = self.SERVICES_PRICE.get(self.name)
-        super(Service, self).save(*args, **kwargs)
+models.ForeignKey.register_lookup(Length)
 
 
 class Client(models.Model):
-    CONSTANT_CLIENT = 'Постоянный клиент'
-    SIMPLE_CLIENT = 'Обычный клиент'
-    FIRST_VISIT_CLIENT = 'Первый визит'
 
-    CLIENT_CHOICES = [
-        (CONSTANT_CLIENT, 'Постоянный клиент'),
-        (SIMPLE_CLIENT, 'Обычный клиент'),
-        (FIRST_VISIT_CLIENT, 'Первый визит'),
-    ]
+    class Clients(models.TextChoices):
 
-    user = models.OneToOneField('User', on_delete=models.CASCADE, help_text='Укажите зарегистрированного пользователя', verbose_name='Клиент')
-    client_type = models.CharField(max_length=20, choices=CLIENT_CHOICES, verbose_name='Тип клиента', help_text='Введите тип клиента')
+        CONSTANT_CLIENT = 'Постоянный клиент', 'Постоянный клиент'
+        SIMPLE_CLIENT = 'Обычный клиент', 'Обычный клиент'
+        FIRST_VISIT_CLIENT = 'Первый визит', 'Первый визит'
+        __empty__ = 'Укажите пользователя'
+
+    user = models.OneToOneField('User', on_delete=models.CASCADE, limit_choices_to={'is_client': True},
+                                help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент')
+    client_type = models.CharField(max_length=20, choices=Clients.choices, verbose_name='Тип клиента', help_text='Введите тип клиента')
 
     class Meta:
-        verbose_name = _("Клиент")
-        verbose_name_plural = ("Клиенты")
+        verbose_name = "Клиент"
+        verbose_name_plural = "Клиенты"
 
     def __str__(self) -> str:
         return self.user.last_name + ' ' + self.user.first_name
 
 
 class Master(models.Model):
-    TOP_MASTER = 'Топ-мастер'
-    SIMPLE_MASTER = 'Обычный мастер'
-    STUDENT_MASTER = 'Ученик'
 
-    MASTER_CHOICES = [
-        (TOP_MASTER, 'Топ-мастер'),
-        (SIMPLE_MASTER, 'Обычный мастер'),
-        (STUDENT_MASTER, 'Ученик'),
-    ]
+    class Masters(models.TextChoices):
+        TOP_MASTER = 'Топ-мастер', 'Топ-мастер'
+        SIMPLE_MASTER = 'Обычный мастер', 'Обычный мастер'
+        STUDENT_MASTER = 'Ученик', 'Ученик'
+        __empty__ = 'Укажите квалификалицию мастера'
 
-    user = models.OneToOneField('User', on_delete=models.CASCADE, help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер')
-    qualification = models.CharField(max_length=15, choices=MASTER_CHOICES, verbose_name='Квалификация мастера',
-                                     help_text='Выберите квалификалицию', null=True, blank=True)
+    user = models.OneToOneField('User', on_delete=models.CASCADE, limit_choices_to={'is_client': False, 'is_superuser': False},
+                                help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер')
+    qualification = models.CharField(max_length=15, choices=Masters.choices, verbose_name='Квалификация мастера',
+                                     help_text='Выберите квалификалицию мастера', null=True, blank=True)
 
     class Meta:
-        verbose_name = _("Мастер")
-        verbose_name_plural = ("Мастера")
+        verbose_name = "Мастер"
+        verbose_name_plural = "Мастера"
 
     def __str__(self) -> str:
         return self.user.last_name + ' ' + self.user.first_name
 
 
-class DiscountManager(models.Manager):
-
-    def create_discount(self, name):
-        discount = self.create(name=name)
-        return discount
-
-
-class Discount(models.Model):
-    FIRST_VISIT = 'Первый визит'
-    SIX_VISIT = 'Шестой визит'
-    TALK = 'Сарафан'
-
-    DISCOUNT_CHOICES = [
-        (FIRST_VISIT, 'Первый визит'),
-        (SIX_VISIT, 'Шестой визит'),
-        (TALK, 'Сарафан'),
-    ]
-
-    DISCOUNTS_PRICE = {
-        'Первый визит': 0.15,
-        'Шестой визит': 0.35,
-        'Сарафан': 500.0,
-    }
-
-    name = models.CharField(max_length=15, choices=DISCOUNT_CHOICES, verbose_name='Тип скидки', help_text='Выберите тип скидки', unique=True)
-    value = models.FloatField(editable=False, verbose_name='Значение скидки')
-
-    objects = DiscountManager()
-
-    class Meta:
-        verbose_name = _("Скидка")
-        verbose_name_plural = ("Скидки")
-
-    def __str__(self) -> str:
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.value = self.DISCOUNTS_PRICE.get(self.name)
-        super(Discount, self).save(*args, **kwargs)
-
-
 class Visit(models.Model):
 
-    # STATUSES
-    PRELIMINARY = 'Предварительная запись'
-    SUCCESSFULLY = 'Успешная запись'
-    CANCELED = 'Отмененная запись'
-    STATUS_CHOICES = [(PRELIMINARY, 'Предварительная запись'),
-                      (SUCCESSFULLY, 'Успешная запись'),
-                      (CANCELED, 'Отмененная запись'),
-                      ]
+    class Statuses(models.TextChoices):
+        PRELIMINARY = 'Предварительная запись', 'Предварительная запись'
+        SUCCESSFULLY = 'Успешная запись', 'Успешная запись'
+        CANCELED = 'Отмененная запись', 'Отмененная запись'
+        __empty__ = 'Выберите тип записи'
 
-    # RATINGS
-    BEST = 5
-    HIGH = 4
-    MEDIUM = 3
-    LOW = 2
-    BAD = 1
-    RATING_CHOICES = [(BEST, 'Великолепно'),
-                      (HIGH, 'Хорошо'),
-                      (MEDIUM, 'Обычно'),
-                      (LOW, 'Плохо'),
-                      (BAD, 'Ужасно')
-                      ]
+    class Services(models.IntegerChoices):
+        MANICURE = 1000, 'Маникюр'
+        MANICURE_WITH_COATING = 2000, 'Маникюр с покрытием'
+        CORRECTION = 2800, 'Коррекция'
+        BUILD_UP = 3800, 'Наращивание'
+        FRENCH = 2500, 'Френч'
 
-    visit_date = models.DateTimeField(help_text='Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, help_text='Выберите статус записи', verbose_name='Статус записи')
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, help_text='Выберите тип услуги', verbose_name='Тип услуги')
-    client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Укажите клиента', verbose_name='Клиент', null=True, blank=False)
-    master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите мастера', verbose_name='Мастер')
-    service_price = models.PositiveSmallIntegerField(editable=False, verbose_name='Стоимость услуги')
-    discount = models.ForeignKey('Discount', on_delete=models.CASCADE, help_text='Выберите тип скидки', verbose_name='Тип скидки')
+        PEDICURE = 2600, 'Педикюр'
+        PEDICURE_WITH_COATING_FOOT = 3000, 'Педикюр с покрытием (стопа)'
+        PEDICURE_WITH_COATING_FINGERS = 2300, 'Педикюр с покрытием (пальчики)'
+        __empty__ = 'Укажите услугу'
+
+    class Ratings(models.IntegerChoices):
+        BEST = 5, 'Великолепно'
+        HIGH = 4, 'Хорошо'
+        MEDIUM = 3, 'Обычно'
+        LOW = 2, 'Плохо'
+        BAD = 1, 'Ужасно'
+        __empty__ = 'Укажите оценку'
+
+    class Discounts(float, models.Choices):
+        FIRST_VISIT = 0.15, 'Первый визит'
+        SIX_VISIT = 0.35, 'Шестой визит'
+        TALK = 500.0, 'Сарафан'
+        __empty__ = 'Укажите скидку'
+        
+    visit_date = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
+    status = models.CharField(max_length=30, choices=Statuses.choices, help_text='Необходимо указать.', verbose_name='Тип записи')
+    service_price = models.PositiveSmallIntegerField(choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
+    client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Клиент', null=True, blank=False)
+    master = models.ForeignKey('Master', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Мастер', null=True)
+    discount = models.FloatField(choices=Discounts.choices, help_text='Необходимо указать.', verbose_name='Тип скидки')
     total = models.FloatField(editable=False, verbose_name='Вывод по чеку')
     tax = models.FloatField(editable=False, verbose_name='Налог', null=True)
     review = models.CharField(max_length=250, help_text='Напишите ваш отзыв', verbose_name='Отзыв', null=True, blank=True)
-    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, unique=True, help_text='Здесь Вы можете указать вашу оценку',
+    rating = models.PositiveSmallIntegerField(choices=Ratings.choices, unique=True, help_text='Здесь Вы можете указать вашу оценку',
                                               verbose_name='Ваша оценка', null=True, blank=True)
 
-    class Meta:
-        verbose_name = _("Запись")
-        verbose_name_plural = ("Записи")
+    class Meta():
+        verbose_name = "Запись"
+        verbose_name_plural = "Записи"
         constraints = [models.UniqueConstraint(fields=['visit_date', 'status'], name='unique_status'),
                        models.UniqueConstraint(fields=['visit_date', 'client'], name='unique_client'),
-                       models.UniqueConstraint(fields=['visit_date', 'master'], name='unique_master')]
+                       models.UniqueConstraint(fields=['visit_date', 'master'], name='unique_master'),
+                       ]
+
+    def clean(self):
+        super().clean()
+        if Visit.objects.filter(client=self.client, visit_date__month=self.visit_date.month).count() >= 1:
+            if self.client.client_type != 'Постоянный клиент':
+                raise ValidationError('Данный пользователь не может иметь больше 1 записи в месяц')
 
     def __str__(self) -> str:
-        return f'[{self.visit_date}] - {self.client}: {self.service}'
+        return f'[{self.visit_date}] - {self.client}: {self.get_service_price_display()}'
 
     def save(self, *args, **kwargs):
-        self.service_price = self.service.value
-        if self.status != self.CANCELED:
-            if self.discount.name != self.discount.TALK:
-                self.total = self.service_price - self.service_price * self.discount.value
+        if self.status != self.Statuses.CANCELED:
+            if self.discount < 1:
+                self.total = self.service_price - self.service_price * self.discount
             else:
-                self.total = self.service_price - self.discount.value
+                self.total = self.service_price - self.discount
         else:
             self.total = 0
         self.tax = self.total * 0.04
@@ -225,8 +145,7 @@ class UserManager(BaseUserManager):
         if not phone_number:
             raise ValueError("Пользователь должен иметь номер телефона")
         email = self.normalize_email(email)
-
-        phone_number = phone_number
+        phone_number = normallize_phone_number(phone_number=phone_number)
         user = self.model(phone_number=phone_number, email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -235,11 +154,17 @@ class UserManager(BaseUserManager):
     def create_user(self, phone_number, email=None, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
+        extra_fields.setdefault("is_client", True)
+
+        if extra_fields.get("is_client") is not True:
+            raise ValueError("Пользователь обязательно должен иметь статус 'Клиент'")
+
         return self._create_user(phone_number, email, password, **extra_fields)
 
     def create_superuser(self, phone_number, email=None, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_client", False)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
@@ -276,6 +201,14 @@ class UserManager(BaseUserManager):
         return self.none()
 
 
+def normallize_phone_number(phone_number, full_number=False):
+    pn_regex = PhoneNumberValidator().regex
+    matched = pn_regex.search(phone_number)
+    if full_number:
+        return "+7" + f' ({matched[2]}) ' + f'{matched[3]}' + f'-{matched[4]}-' + f'{matched[5]}'
+    return "8" + f'{matched[2]}' + f'{matched[3]}' + f'{matched[4]}' + f'{matched[5]}'
+
+
 class User(AbstractBaseUser, PermissionsMixin):
 
     phone_number_validator = PhoneNumberValidator()
@@ -283,12 +216,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(
         max_length=150,
         unique=True,
-        help_text=_(
-            "Обязательно. Максимально допустимое кол-во символов - 18. Цифры и символы '()', '+' и '_'."
-        ),
+        help_text="Обязательно. Максимально допустимое кол-во символов - 18. Цифры и символы '()', '+' и '_'.",
         validators=[phone_number_validator],
         error_messages={
-            "unique": _("Пользователь с таким номером телефона уже существует.")
+            "unique": "Пользователь с таким номером телефона уже существует."
         },
         verbose_name='Номер телефона'
     )
@@ -308,6 +239,12 @@ class User(AbstractBaseUser, PermissionsMixin):
             "Unselect this instead of deleting accounts."
         ),
     )
+    is_client = models.BooleanField(
+        "Клиент",
+        default=False,
+        help_text="Отметьте, если пользователь должен считаться клиентом.",
+    )
+
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = UserManager()
@@ -317,14 +254,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["last_name", "first_name", "email"]
 
     class Meta:
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
         abstract = False
         swappable = "AUTH_USER_MODEL"
 
+    def __str__(self):
+        return self.last_name + ' ' + self.first_name
+
     def clean(self):
         super().clean()
-        self.phone_number = self.make_correct_phone_number(self.phone_number)
+        self.phone_number = normallize_phone_number(self.phone_number)
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
@@ -342,13 +282,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-    def make_correct_phone_number(self, phone_number):
-        pn_regex = PhoneNumberValidator().regex
-        matched = pn_regex.search(phone_number)
-        return "+7" + f' ({matched[2]}) ' + f'{matched[3]}' + f'-{matched[4]}-' + f'{matched[5]}'
-
     def save(self, *args, **kwargs):
 
-        if not self.id and not self.is_staff and not self.is_superuser:
-            self.password = make_password(self.password)
+        # if not self.id and not self.is_staff and not self.is_superuser:
+        self.password = make_password(self.password)
         super().save(*args, **kwargs)

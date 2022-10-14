@@ -20,8 +20,7 @@ from django.urls import path, include
 from services import views
 
 
-urlpatterns = [path('insert_data/', views.insert_data, name='insert_data'),
-               path('accounts/', include('django.contrib.auth.urls')),
+urlpatterns = [path('accounts/', include('django.contrib.auth.urls')),
                path('admin/', admin.site.urls),
                path('', views.index, name='index')
                ]

@@ -6,11 +6,13 @@
 <h2>Динамический контент</h2>
 <p>Все доступные записи на данный момент:</p>
 
-<ul>
+<p> {{ visits }}</p>
+
+<!-- <ul>
 {% for visit in visits %}
-    <li>{{ visit.visit_date }} - {{ visit.client }} - {{ visit.service }}</li>
+    <li>{{ visit.visit_date.month }} - {{ visit.client }} - {{ visit.get_service_price_display }}</li>
 {% endfor %}
- </ul>
+ </ul> -->
 
 {% endblock content %}
 

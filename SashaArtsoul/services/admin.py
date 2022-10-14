@@ -1,19 +1,21 @@
 from django.contrib import admin
-from .models import Service, Client, Master, Visit, Discount, User
+from .models import Client, Master, Visit, User
 
 # Register your models here.
-admin.site.register(Service)
-admin.site.register(Client)
 admin.site.register(Master)
-admin.site.register(User)
-
-
-@admin.register(Discount)
-class DiscountAdmin(admin.ModelAdmin):
-    list_display = ('name', 'value')
 
 
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
-    list_display = ('visit_date', 'status', 'service', 'client', 'master', 'total', 'review', 'rating')
+    list_display = ('visit_date', 'status', 'service_price', 'client', 'master', 'total', 'review', 'rating')
     list_filter = ('visit_date', 'status', 'client')
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('last_name', 'first_name', 'phone_number', 'is_client')
+
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ('user', 'client_type')
