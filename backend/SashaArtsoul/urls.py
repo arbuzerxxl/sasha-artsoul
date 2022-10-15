@@ -20,7 +20,8 @@ from django.urls import path, include
 from services import views
 
 
-urlpatterns = [path('accounts/', include('django.contrib.auth.urls')),
+urlpatterns = [path('', include("django_nextjs.urls")),
+               path('accounts/', include('django.contrib.auth.urls')),
                path('admin/', admin.site.urls),
                path('', views.index, name='index'),
                path('api/', include('api.urls')),

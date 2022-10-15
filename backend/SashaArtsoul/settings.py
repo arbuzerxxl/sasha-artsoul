@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'services.apps.ServicesConfig',
+    'django_nextjs'
 ]
 
 MIDDLEWARE = [
@@ -94,7 +95,7 @@ DATABASES = {
         'USER': 'artsoul',
         'PASSWORD': os.environ['ARTSOUL_PSQL_PWD'],
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 # porosenok_nail_0211

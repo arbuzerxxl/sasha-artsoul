@@ -3,6 +3,12 @@ from django.http import HttpResponse
 from .models import Visit
 
 
+# from django_nextjs.render import render_nextjs_page_syncdef
+
+
+# def index(request):
+#     return render_nextjs_page_sync(request)
+
 def index(request):
     visits = Visit.objects.all()
 
