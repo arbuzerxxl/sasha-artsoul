@@ -137,3 +137,5 @@ probe.*
 
 # databases
 *.sql
+
+_tmp
