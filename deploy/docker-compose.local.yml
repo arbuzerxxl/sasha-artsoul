@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: artsoul
+      POSTGRES_PASSWORD: ''
+      POSTGRES_DB: artsoul
+    ports:
+      - 5433:5432
+    volumes:
+      - ../../_tmp/sashaartsoul/postgres-v3:/var/lib/postgresql/data
