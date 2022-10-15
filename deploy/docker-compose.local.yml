@@ -11,4 +11,4 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - ../../_tmp/sashaartsoul/postgres-v3:/var/lib/postgresql/data
+      - ../_tmp/sashaartsoul/postgres-v3:/var/lib/postgresql/data
