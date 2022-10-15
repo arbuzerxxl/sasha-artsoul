@@ -6,7 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.forms import ValidationError
 from .validators import PhoneNumberValidator
 from django.contrib import auth
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, identify_hasher
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
@@ -47,7 +47,7 @@ class Master(models.Model):
         STUDENT_MASTER = 'Ученик', 'Ученик'
         __empty__ = 'Укажите квалификалицию мастера'
 
-    user = models.OneToOneField('User', on_delete=models.CASCADE, limit_choices_to={'is_client': False, 'is_superuser': False},
+    user = models.OneToOneField('User', on_delete=models.CASCADE, limit_choices_to={'is_client': False},
                                 help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер')
     qualification = models.CharField(max_length=15, choices=Masters.choices, verbose_name='Квалификация мастера',
                                      help_text='Выберите квалификалицию мастера', null=True, blank=True)
@@ -99,7 +99,7 @@ class Visit(models.Model):
     service_price = models.PositiveSmallIntegerField(choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Клиент', null=True, blank=False)
     master = models.ForeignKey('Master', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Мастер', null=True)
-    discount = models.FloatField(choices=Discounts.choices, help_text='Необходимо указать.', verbose_name='Тип скидки')
+    discount = models.FloatField(choices=Discounts.choices, help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
     total = models.FloatField(editable=False, verbose_name='Вывод по чеку')
     tax = models.FloatField(editable=False, verbose_name='Налог', null=True)
     review = models.CharField(max_length=250, help_text='Напишите ваш отзыв', verbose_name='Отзыв', null=True, blank=True)
@@ -116,7 +116,7 @@ class Visit(models.Model):
 
     def clean(self):
         super().clean()
-        if Visit.objects.filter(client=self.client, visit_date__month=self.visit_date.month).count() >= 1:
+        if Visit.objects.filter(client=self.client, visit_date__month=self.visit_date.month).count() >= 3:
             if self.client.client_type != 'Постоянный клиент':
                 raise ValidationError('Данный пользователь не может иметь больше 1 записи в месяц')
 
@@ -124,8 +124,11 @@ class Visit(models.Model):
         return f'[{self.visit_date}] - {self.client}: {self.get_service_price_display()}'
 
     def save(self, *args, **kwargs):
+
         if self.status != self.Statuses.CANCELED:
-            if self.discount < 1:
+            if not self.discount:
+                self.total = self.service_price
+            elif self.discount < 1:
                 self.total = self.service_price - self.service_price * self.discount
             else:
                 self.total = self.service_price - self.discount
@@ -283,7 +286,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def save(self, *args, **kwargs):
-
-        # if not self.id and not self.is_staff and not self.is_superuser:
-        self.password = make_password(self.password)
+        try:
+            _alg = identify_hasher(self.password)
+        except ValueError:
+            self.password = make_password(self.password)
         super().save(*args, **kwargs)

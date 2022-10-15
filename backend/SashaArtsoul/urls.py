@@ -22,5 +22,6 @@ from services import views
 
 urlpatterns = [path('accounts/', include('django.contrib.auth.urls')),
                path('admin/', admin.site.urls),
-               path('', views.index, name='index')
+               path('', views.index, name='index'),
+               path('api/', include('api.urls')),
                ]
