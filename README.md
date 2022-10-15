@@ -12,7 +12,7 @@ with env
 docker-compose --env-file .env --compatibility -p artsoul -f ./deploy/docker-compose.local.yml up --build --remove-orphans -d
 
 <!-- install python libs -->
-python3 -m pip install requirements.txt
+python3 -m pip install -r requirements.txt
 
 <!-- create migrations -->
 python3 manage.py makemigrations
