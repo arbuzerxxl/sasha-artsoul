@@ -20,10 +20,32 @@ python3 manage.py makemigrations
 <!-- migrate to DB -->
 python3 manage.py migrate
 
+<!-- run nextjs -->
+npm run dev
+
 <!-- run django -->
 python3 manage.py runserver
-
 
 <!-- create ADMIN -->
 python3 manage.py createsuperuser
 
+
+<!-- GIT usefull commands -->
+git commit -am "..."  # take all files to commit
+
+git branch -av  # show all local and deleted branches 
+
+git branch  # show local branches
+
+git branch new_branch  # create new branch
+
+git checkout any_branch  # turn off to branch
+
+git fetch  # get last update from git without merge
+
+git pull --rebase  # # get last update from git and rebase
+
+git checkout main
+git merge develop  # merge all changes from DEVELOP to MAIN
+
+git log --oneline  # show all commits

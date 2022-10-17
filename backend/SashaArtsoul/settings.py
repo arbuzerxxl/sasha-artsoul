@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'services.apps.ServicesConfig',
-    'django_nextjs'
+    'django_nextjs',
 ]
 
 MIDDLEWARE = [
