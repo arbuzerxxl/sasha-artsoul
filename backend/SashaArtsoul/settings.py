@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'services.apps.ServicesConfig',
+    'accounts.apps.AccountsConfig',
     'django_nextjs',
 ]
 
@@ -98,7 +99,6 @@ DATABASES = {
         'PORT': '5433',
     }
 }
-# porosenok_nail_0211
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -142,4 +142,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Own AUTH model
-AUTH_USER_MODEL = 'services.User'
+AUTH_USER_MODEL = 'accounts.User'
