@@ -1,8 +1,14 @@
+import decimal
 from django.db import models
 from django.forms import ValidationError
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+
+# class ClientManager(models.Manager):
+#     def get_by_natural_key(self, user):
+#         return self.get(user=user)
 
 
 class Client(models.Model):
@@ -18,12 +24,17 @@ class Client(models.Model):
                                 help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент')
     client_type = models.CharField(max_length=20, choices=Clients.choices, verbose_name='Тип клиента', help_text='Введите тип клиента')
 
+    # objects = ClientManager()
+
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
 
     def __str__(self) -> str:
         return self.user.last_name + ' ' + self.user.first_name
+
+    # def natural_key(self):
+    #     return self.user
 
 
 class Master(models.Model):
@@ -80,17 +91,17 @@ class Visit(models.Model):
         SIX_VISIT = 0.35, 'Шестой визит'
         TALK = 500.0, 'Сарафан'
         __empty__ = 'Укажите скидку'
-        
+
     visit_date = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
     status = models.CharField(max_length=30, choices=Statuses.choices, help_text='Необходимо указать.', verbose_name='Тип записи')
     service_price = models.PositiveSmallIntegerField(choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Клиент', null=True, blank=False)
     master = models.ForeignKey('Master', on_delete=models.SET_NULL, help_text='Необходимо указать.', verbose_name='Мастер', null=True)
-    discount = models.FloatField(choices=Discounts.choices, help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
+    discount = models.FloatField(choices=Discounts.choices, help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)  # TODO: настроить DecimalField для всех значений
     total = models.FloatField(editable=False, verbose_name='Вывод по чеку')
     tax = models.FloatField(editable=False, verbose_name='Налог', null=True)
     review = models.CharField(max_length=250, help_text='Напишите ваш отзыв', verbose_name='Отзыв', null=True, blank=True)
-    rating = models.PositiveSmallIntegerField(choices=Ratings.choices, unique=True, help_text='Здесь Вы можете указать вашу оценку',
+    rating = models.PositiveSmallIntegerField(choices=Ratings.choices, help_text='Здесь Вы можете указать вашу оценку',
                                               verbose_name='Ваша оценка', null=True, blank=True)
 
     class Meta():
@@ -103,12 +114,17 @@ class Visit(models.Model):
 
     def clean(self):
         super().clean()
-        if Visit.objects.filter(client=self.client, visit_date__month=self.visit_date.month).count() >= 3:
+        if Visit.objects.filter(
+            client=self.client, visit_date__month=self.visit_date.month) and Visit.objects.filter(
+                client=self.client, visit_date__month=self.visit_date.month).count() >= 3:
             if self.client.client_type != 'Постоянный клиент':
                 raise ValidationError('Данный пользователь не может иметь больше 1 записи в месяц')
 
     def __str__(self) -> str:
         return f'[{self.visit_date}] - {self.client}: {self.get_service_price_display()}'
+
+    def get_client_name(self) -> str:
+        return f'{self.client}'
 
     def save(self, *args, **kwargs):
 

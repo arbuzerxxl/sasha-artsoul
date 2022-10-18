@@ -9,6 +9,14 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+def normallize_phone_number(phone_number, full_number=False):
+    pn_regex = PhoneNumberValidator().regex
+    matched = pn_regex.search(phone_number)
+    if full_number:
+        return "+7" + f' ({matched[2]}) ' + f'{matched[3]}' + f'-{matched[4]}-' + f'{matched[5]}'
+    return "8" + f'{matched[2]}' + f'{matched[3]}' + f'{matched[4]}' + f'{matched[5]}'
+
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -46,7 +54,10 @@ class UserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(phone_number, email, password, **extra_fields)
-
+    
+    def get_by_natural_key(self, first_name, last_name):
+        return self.get(first_name=first_name, last_name=last_name)
+    
     def with_perm(
         self, perm, is_active=True, include_superusers=True, backend=None, obj=None
     ):
@@ -73,14 +84,6 @@ class UserManager(BaseUserManager):
                 obj=obj,
             )
         return self.none()
-
-
-def normallize_phone_number(phone_number, full_number=False):
-    pn_regex = PhoneNumberValidator().regex
-    matched = pn_regex.search(phone_number)
-    if full_number:
-        return "+7" + f' ({matched[2]}) ' + f'{matched[3]}' + f'-{matched[4]}-' + f'{matched[5]}'
-    return "8" + f'{matched[2]}' + f'{matched[3]}' + f'{matched[4]}' + f'{matched[5]}'
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -132,6 +135,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = "Пользователи"
         abstract = False
         swappable = "AUTH_USER_MODEL"
+        unique_together = [['first_name', 'last_name']]
 
     def __str__(self):
         return self.last_name + ' ' + self.first_name
@@ -140,7 +144,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().clean()
         self.phone_number = normallize_phone_number(self.phone_number)
         self.email = self.__class__.objects.normalize_email(self.email)
-
+    
     def get_full_name(self):
         """
         Return the first_name plus the last_name, with a space in between.
@@ -155,6 +159,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def natural_key(self):
+        return (self.last_name, self.first_name)
 
     def save(self, *args, **kwargs):
         try:

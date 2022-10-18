@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Visit
-
+from .models import Visit, Client
+from accounts.models import User
 
 from django_nextjs.render import render_nextjs_page_sync
 
@@ -11,7 +11,10 @@ def index(request):
 
 
 def index(request):
-    visits = Visit.objects.all()
+    user = User.objects.get(last_name='Kurbatova', first_name='Tatyana')
+    client = Client.objects.get(user=user.id)
+    
+    visits = Visit.objects.filter(client=client.id)
 
     return render(request, 'index.html',
                   context={'visits': visits})

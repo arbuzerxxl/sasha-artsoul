@@ -127,6 +127,7 @@ LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
+USE_L10N = False  # влияет на разделитель чисел в HTML форме!
 
 USE_TZ = True
 
@@ -143,3 +144,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Own AUTH model
 AUTH_USER_MODEL = 'accounts.User'
+
+DATETIME_FORMAT = 'j-Е-Y H:i'
+DATETIME_INPUT_FORMATS = ["%d-%m-%Y %H:%M", ]
+
+# REST SETTINGS
+REST_FRAMEWORK = {
+    'DATETIME_FORMAT': "%d-%m-%Y %H:%M",
+    'DATETIME_INPUT_FORMATS': ["%d-%m-%Y %H:%M",],
+}
