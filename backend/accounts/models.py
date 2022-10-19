@@ -91,7 +91,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number_validator = PhoneNumberValidator()
 
     phone_number = models.CharField(
-        max_length=150,
+        max_length=12,
         unique=True,
         help_text="Обязательно. Максимально допустимое кол-во символов - 18. Цифры и символы '()', '+' и '_'.",
         validators=[phone_number_validator],

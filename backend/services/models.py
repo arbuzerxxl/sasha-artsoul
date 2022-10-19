@@ -1,4 +1,5 @@
 import decimal
+from email.policy import default
 from django.db import models
 from django.forms import ValidationError
 from django.db import models
@@ -18,11 +19,13 @@ class Client(models.Model):
         CONSTANT_CLIENT = 'Постоянный клиент', 'Постоянный клиент'
         SIMPLE_CLIENT = 'Обычный клиент', 'Обычный клиент'
         FIRST_VISIT_CLIENT = 'Первый визит', 'Первый визит'
-        __empty__ = 'Укажите пользователя'
+        __empty__ = 'Укажите тип клиента'
 
     user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_client': True},
-                                help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент')
+                                help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент', )
     client_type = models.CharField(max_length=20, choices=Clients.choices, verbose_name='Тип клиента', help_text='Введите тип клиента')
+
+    user_phone_number = models.CharField(max_length=12, unique=True, editable=False, null=True)
 
     # objects = ClientManager()
 
@@ -35,6 +38,10 @@ class Client(models.Model):
 
     # def natural_key(self):
     #     return self.user
+
+    def save(self, *args, **kwargs):
+        self.user_phone_number = self.user.phone_number
+        super(Client, self).save(*args, **kwargs)
 
 
 class Master(models.Model):

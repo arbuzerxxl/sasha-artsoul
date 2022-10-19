@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from services.models import Visit
-from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer
+from services.models import Visit, Client
+from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer, ClientsSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsClient
@@ -34,8 +34,19 @@ class VisitViewSet(ModelViewSet):
         if not self.request.user.is_anonymous:
             return self.model.objects.filter(client__user=self.request.user)
 
-    # def perform_create(self, serializer):
-    #     serializer.save(client__user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(client__user=self.request.user)
+
+
+class ClientViewSet(ModelViewSet):
+    model = Client
+    queryset = model.objects.none()
+    serializer_class = ClientsSerializer
+    permission_classes = (IsAdminUser, )
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return self.model.objects.all()
 
 
 # @api_view(['GET', 'POST'])

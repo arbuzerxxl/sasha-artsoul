@@ -151,5 +151,5 @@ DATETIME_INPUT_FORMATS = ["%d-%m-%Y %H:%M", ]
 # REST SETTINGS
 REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%d-%m-%Y %H:%M",
-    'DATETIME_INPUT_FORMATS': ["%d-%m-%Y %H:%M",],
+    'DATETIME_INPUT_FORMATS': ["%d-%m-%Y %H:%M", ],
 }
