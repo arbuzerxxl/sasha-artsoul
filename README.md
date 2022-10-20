@@ -49,3 +49,6 @@ git checkout main
 git merge develop  # merge all changes from DEVELOP to MAIN
 
 git log --oneline  # show all commits
+
+<!-- delete db -->
+sudo rm _tmp -r

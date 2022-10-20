@@ -1,5 +1,5 @@
 
-from doctest import master
+from datetime import datetime
 from rest_framework.serializers import (ModelSerializer, DateTimeField, DecimalField, FloatField,
                                         SerializerMethodField, HyperlinkedIdentityField, StringRelatedField,
                                         IntegerField, CharField, ChoiceField, SlugRelatedField, EmailField)
@@ -10,8 +10,8 @@ from django.utils.formats import number_format
 import decimal
 
 
-class UserSerializer(ModelSerializer):  # TODO: Добавить сериализацию натуральных ключей в модели
-    
+class UserSerializer(ModelSerializer):
+
     class Meta:
         model = get_user_model()
         queryset = model.objects.all()
@@ -32,30 +32,33 @@ class UserSerializer(ModelSerializer):  # TODO: Добавить сериали�
 
 class VisitSerializer(ModelSerializer):
 
-    visit_date = DateTimeField(label='Дата и время записи', help_text='Необходимо указать. Укажите дату и время записи', format='%d-%m-%Y %H:%M')
-
-    client = SlugRelatedField(slug_field='user_phone_number', queryset=Client.objects.all(),
-                              label='Клиент', help_text='Необходимо указать. Укажите клиента',)
+    # visit_date = DateTimeField(label='Дата и время записи', help_text='Необходимо указать. Укажите дату и время записи', format='%d-%m-%Y %H:%M')
 
     class Meta:
         model = Visit
         fields = '__all__'
 
+    def create(self, validated_data):
+
+        request_visit_date = validated_data.pop('visit_date')
+        obj_visit_date = datetime.strptime(request_visit_date, "%Y-%m-%dT%H:%M")
+        visit_date = obj_visit_date.strftime('%d-%m-%Y %H:%M')
+        validated_data['visit_date'] = visit_date
+        visit = self.Meta.model(**validated_data)
+        visit.save()
+        return visit
+
 
 class ThinVisitSerializer(ModelSerializer):
     detail_url = HyperlinkedIdentityField(view_name='visits-detail')
-    client = SlugRelatedField(slug_field='user_phone_number', queryset=Client.objects.all(),
-                              label='Клиент', help_text='Необходимо указать. Укажите клиента',)
 
     class Meta:
         model = Visit
-        fields = ('visit_date', 'client', 'master', 'service_price', 'detail_url',)
+        fields = ('visit_date', 'client', 'master', 'service', 'detail_url',)
 
 
 class ClientsSerializer(ModelSerializer):
     detail_url = HyperlinkedIdentityField(view_name='clients-detail', )
-    user = SlugRelatedField(slug_field='phone_number', queryset=User.objects.all(),
-                            label='Пользователь', help_text='Необходимо указать. Укажите пользователя',)
 
     class Meta:
         model = Client

@@ -11,10 +11,8 @@ def index(request):
 
 
 def index(request):
-    user = User.objects.get(last_name='Kurbatova', first_name='Tatyana')
-    client = Client.objects.get(user=user.id)
-    
-    visits = Visit.objects.filter(client=client.id)
+
+    visits = Visit.objects.filter(client=request.user.phone_number)
 
     return render(request, 'index.html',
                   context={'visits': visits})

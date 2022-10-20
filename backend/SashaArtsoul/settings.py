@@ -145,7 +145,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Own AUTH model
 AUTH_USER_MODEL = 'accounts.User'
 
-DATETIME_FORMAT = 'j-Е-Y H:i'
+DATETIME_FORMAT = 'j-m-Y H:i'
 DATETIME_INPUT_FORMATS = ["%d-%m-%Y %H:%M", ]
 
 # REST SETTINGS

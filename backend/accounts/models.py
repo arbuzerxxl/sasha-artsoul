@@ -54,10 +54,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(phone_number, email, password, **extra_fields)
-    
-    def get_by_natural_key(self, first_name, last_name):
-        return self.get(first_name=first_name, last_name=last_name)
-    
+        
     def with_perm(
         self, perm, is_active=True, include_superusers=True, backend=None, obj=None
     ):
@@ -159,9 +156,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
-
-    def natural_key(self):
-        return (self.last_name, self.first_name)
 
     def save(self, *args, **kwargs):
         try:
