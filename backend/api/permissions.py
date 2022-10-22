@@ -8,6 +8,6 @@ class IsClient(BasePermission):
 
     def has_object_permission(self, request, view, obj):
 
-        if obj.client.user == request.user and request.method in SAFE_METHODS:  # FIXME: "has no attribute"
+        if obj.client.user == request.user and request.method in SAFE_METHODS:
             return True
         return request.user.is_superuser

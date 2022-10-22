@@ -139,9 +139,6 @@ class Visit(models.Model):
     def __str__(self) -> str:
         return f'[{self.visit_date}] - {self.client}: {self.service}'
 
-    def get_client_name(self) -> str:
-        return f'{self.client}'
-
     def save(self, *args, **kwargs):
         self.service_price = Decimal(self.SERVICE_PRICES[self.service])
         if self.status != self.Statuses.CANCELED:

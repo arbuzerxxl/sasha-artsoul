@@ -1,13 +1,8 @@
 
 from datetime import datetime
-from rest_framework.serializers import (ModelSerializer, DateTimeField, DecimalField, FloatField,
-                                        SerializerMethodField, HyperlinkedIdentityField, StringRelatedField,
-                                        IntegerField, CharField, ChoiceField, SlugRelatedField, EmailField)
+from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField)
 from services.models import Visit, Client
-from accounts.models import User
 from django.contrib.auth import get_user_model
-from django.utils.formats import number_format
-import decimal
 
 
 class UserSerializer(ModelSerializer):
@@ -32,21 +27,19 @@ class UserSerializer(ModelSerializer):
 
 class VisitSerializer(ModelSerializer):
 
-    # visit_date = DateTimeField(label='Дата и время записи', help_text='Необходимо указать. Укажите дату и время записи', format='%d-%m-%Y %H:%M')
-
     class Meta:
         model = Visit
         fields = '__all__'
 
-    def create(self, validated_data):
+    # def create(self, validated_data):
 
-        request_visit_date = validated_data.pop('visit_date')
-        obj_visit_date = datetime.strptime(request_visit_date, "%Y-%m-%dT%H:%M")
-        visit_date = obj_visit_date.strftime('%d-%m-%Y %H:%M')
-        validated_data['visit_date'] = visit_date
-        visit = self.Meta.model(**validated_data)
-        visit.save()
-        return visit
+    #     request_visit_date = validated_data.pop('visit_date')
+    #     obj_visit_date = datetime.strptime(request_visit_date, "%Y-%m-%dT%H:%M")
+    #     visit_date = obj_visit_date.strftime('%d-%m-%Y %H:%M')
+    #     validated_data['visit_date'] = visit_date
+    #     visit = self.Meta.model(**validated_data)
+    #     visit.save()
+    #     return visit
 
 
 class ThinVisitSerializer(ModelSerializer):

@@ -29,8 +29,8 @@
         {% endif %}
         <a href="{% url 'index' %}">Главная</a>
         <a href="">Услуги</a>
-        <a href="">Прайс</a>
-        <a href="">Отзывы</a>
+        <a href="{% url 'token_obtain_pair' %}">Получить токен</a>
+        <a href="{% url 'token_verify' %}">Проверить токен</a>
         <a href="">О нас</a>
         <a href="">Контакты</a>
     </nav>

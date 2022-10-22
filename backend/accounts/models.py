@@ -54,7 +54,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(phone_number, email, password, **extra_fields)
-        
+
     def with_perm(
         self, perm, is_active=True, include_superusers=True, backend=None, obj=None
     ):
@@ -141,7 +141,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().clean()
         self.phone_number = normallize_phone_number(self.phone_number)
         self.email = self.__class__.objects.normalize_email(self.email)
-    
+
     def get_full_name(self):
         """
         Return the first_name plus the last_name, with a space in between.
