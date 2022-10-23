@@ -22,10 +22,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 urlpatterns = [path('', include("django_nextjs.urls")),
-               path('accounts/', include('django.contrib.auth.urls')),
-               path('admin/', admin.site.urls),
                path('', views.index, name='index'),
-               path('home/', views.home, name='home'),
+               path('login', views.index, name='index'),
+               path('admin/', admin.site.urls),
+               path('accounts/', include('django.contrib.auth.urls')),
                path('api/', include('api.urls')),
                path('api-auth/', include(('rest_framework.urls', 'rest_framework'))),
                path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

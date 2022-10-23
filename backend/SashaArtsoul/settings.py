@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'services.apps.ServicesConfig',
     'accounts.apps.AccountsConfig',
-    'django_nextjs',
     'rest_framework_simplejwt',
+    'django_nextjs',
 ]
 
 MIDDLEWARE = [
@@ -187,3 +187,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+NEXTJS_SETTINGS = {"nextjs_server_url": "http://127.0.0.1:3000", }
+
