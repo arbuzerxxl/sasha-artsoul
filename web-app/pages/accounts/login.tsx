@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
-import { AuthWrapper } from '../wrapper/AuthWrapper'
-import { LoginLayout } from '../layout/LoginLayout'
+import { AuthWrapper } from '../../wrapper/AuthWrapper'
+import { LoginLayout } from '../../layout/LoginLayout'
 
 const Home: NextPage = () => {
   return (
