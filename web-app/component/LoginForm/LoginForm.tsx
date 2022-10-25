@@ -27,13 +27,9 @@ const LoginForm = (props: Props) => {
 
   useEffect(() => () => resetLoginForm(), []);
 
-  const x = useCallback(async (data) => {
-    const csrftoken = Cookies.get('csrftoken');
-console.log(data);
-    if (csrftoken) {
-      const response = await fetch('/', {
+  const x = useCallback(async () => {
+    const response = await fetch('/req/login', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           // 'Cookie': `csrftoken=${csrftoken}`,
@@ -41,14 +37,12 @@ console.log(data);
           // 'X-CSRFToken': csrftoken,
           // 'X-XSRF-TOKEN': csrftoken
         },
-        body: JSON.stringify({
-          password: '1234',
-          userName: '89171919745'
-        }),
-      });
-      console.log(response);
-    }
-
+      body: JSON.stringify({
+        password: 'kss130795',
+        username: '89850768512'
+      }),
+    });
+    console.log(response);
   }, []);
 
   // useEffect(() => {
