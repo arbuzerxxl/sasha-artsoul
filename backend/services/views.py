@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
-# from .models import Visit, Client
+from .models import Visit, Client
 # from accounts.models import User
 from django.views.decorators.csrf import csrf_exempt
 

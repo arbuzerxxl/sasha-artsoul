@@ -3,7 +3,6 @@ import Grid2 from '@mui/material/Unstable_Grid2';
 import { Button, Typography } from '@mui/material';
 import { Input } from '@mui/material';
 import { useStore } from "effector-react";
-import Cookies from 'js-cookie';
 
 import {
   $loginStore,
