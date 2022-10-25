@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import Grid2 from '@mui/material/Unstable_Grid2';
-import { Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { Input } from '@mui/material';
 import { useStore } from "effector-react";
 
@@ -27,16 +27,18 @@ const LoginForm = (props: Props) => {
   useEffect(() => () => resetLoginForm(), []);
 
   const x = useCallback(async () => {
-    const response = await fetch('', {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-
-      },
+    const response = await fetch('/req/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Cookie': `csrftoken=${csrftoken}`,
+          // "Set-Cookie": 'csrftoken=${csrftoken}',
+          // 'X-CSRFToken': csrftoken,
+          // 'X-XSRF-TOKEN': csrftoken
+        },
       body: JSON.stringify({
-        password: '',
-        userName: ''
+        password: 'kss130795',
+        username: '89850768512'
       }),
     });
     console.log(response);
@@ -49,18 +51,23 @@ const LoginForm = (props: Props) => {
       >
         Логин
       </Typography>
-      <Input
-        value={loginStore}
-        className={styles.input}
-        placeholder='номер телефона'
-        onChange={(e) => onChangeLoginStore(e.target.value)}
-      />
-      <Input
-        value={passwordStore}
-        className={styles.input}
-        placeholder='пароль'
-        onChange={(e) => onChangePasswordStore(e.target.value)}
-      />
+      <form onSubmit={x} className={styles.form}>
+        <Input
+          value={loginStore}
+          name='login'
+          className={styles.input}
+          placeholder='номер телефона'
+          onChange={(e) => onChangeLoginStore(e.target.value)}
+        />
+        <Input
+          value={passwordStore}
+          name='password'
+          className={styles.input}
+          placeholder='пароль'
+          onChange={(e) => onChangePasswordStore(e.target.value)}
+        />
+        <Button type="submit">Войти</Button>
+      </form>
     </Grid2>
   )
 }
