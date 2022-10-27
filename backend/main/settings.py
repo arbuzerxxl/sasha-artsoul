@@ -88,7 +88,7 @@ LOGGING = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
-ROOT_URLCONF = 'SashaArtsoul.urls'
+ROOT_URLCONF = 'main.urls'
 
 TEMPLATES = [
     {
@@ -106,7 +106,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'SashaArtsoul.wsgi.application'
+WSGI_APPLICATION = 'main.wsgi.application'
 
 
 # Database
