@@ -1,0 +1,48 @@
+version: "3"
+
+volumes:
+  postgres_volume:
+
+services:
+
+  telegram_bot:
+    container_name: telegram_bot
+    build: ../telebot/
+    restart: unless-stopped
+    links:
+      - main
+
+    env_file:
+      - ./../.env
+    depends_on:
+      - main
+
+  db:
+    container_name: postgresql_db
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=artsoul
+      - POSTGRES_PASSWORD=porosenok0211
+      - POSTGRES_DB=artsoul
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+
+  main:
+    container_name: artsoul_main
+    build: ../backend/
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - ./../.env
+
+
+
+
+

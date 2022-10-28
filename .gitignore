@@ -139,3 +139,4 @@ probe.*
 *.sql
 
 _tmp
+deploy/data/

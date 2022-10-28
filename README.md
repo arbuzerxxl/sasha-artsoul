@@ -8,7 +8,10 @@ docker-compose --compatibility -f docker-compose.yml up -d --force-recreate --bu
 
 with env
 
-<!-- from project -->
+<!-- OLD DOCKER -->
+docker-compose --env-file .env --compatibility -p artsoul -f ./deploy/docker-compose.local.old.yml up --build --remove-orphans -d
+
+<!-- NEW DOCKER -->
 docker-compose --env-file .env --compatibility -p artsoul -f ./deploy/docker-compose.local.yml up --build --remove-orphans -d
 
 <!-- install python libs -->
@@ -52,3 +55,9 @@ git log --oneline  # show all commits
 
 <!-- delete db -->
 sudo rm _tmp -r
+
+<!-- DOCKER -->
+docker rm $(docker ps -qa)
+docker rmi $(docker images -q)
+docker-compose up -d --build  # from dir deploy/
+docker network rm <network_id>

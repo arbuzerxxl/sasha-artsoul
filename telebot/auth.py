@@ -1,6 +1,8 @@
 import ujson
 import shelve
 import requests
+import os
+from settings import BASE_DIR, USERNAME, PASSWORD
 
 
 def get_access_token(tokens, refresh_token: str):
@@ -22,9 +24,10 @@ def get_tokens(tokens):
     """Заносит refresh и access токены в файл"""
 
     url = "http://127.0.0.1:8000/api/token/"
-    payload = ujson.dumps({"phone_number": "89850768512", "password": "kss130795"})  # TODO: добавить логин и пароль через ENV
+    payload = ujson.dumps({"phone_number": USERNAME, "password": PASSWORD})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)
+    print(response)
     if response.status_code == 401:
         raise ValueError('Ошибка в аутентификации. Неверные данные для пользователя.')
     else:
@@ -61,7 +64,7 @@ def get_token_from_cache(tokens, refresh_token=False):
 def auth_with_token(auth_success=False):
     """Выполняет аутентификацию для бота посредством JWToken"""
 
-    tokens = shelve.open('telegram-bot/tokens')
+    tokens = shelve.open(os.path.join(BASE_DIR, 'tokens'))
     token = get_token_from_cache(tokens=tokens)
 
     while not auth_success:

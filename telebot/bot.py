@@ -2,14 +2,14 @@ import asyncio
 import ujson
 import requests
 from aiogram import Bot, Dispatcher, types
-import settings
+from settings import BOT_TOKEN
 from auth import auth_with_token
 
 
 async def show_visits(event: types.Message):
 
     token = auth_with_token()
-    url = "http://127.0.0.1:8000/api/visits"
+    url = "http://127.0.0.1:8000/api/visits/"
 
     payload = {}
     headers = {'Authorization': token}
@@ -32,7 +32,7 @@ async def start_handler(event: types.Message):
 
 
 async def main():
-    bot = Bot(token=settings.BOT_TOKEN)
+    bot = Bot(token=BOT_TOKEN)
     try:
         disp = Dispatcher(bot=bot)
         disp.register_message_handler(start_handler, commands={"start", "restart"})
