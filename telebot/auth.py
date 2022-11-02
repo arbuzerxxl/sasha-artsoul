@@ -2,13 +2,13 @@ import ujson
 import shelve
 import requests
 import os
-from settings import BASE_DIR, USERNAME, PASSWORD
+from settings import BASE_DIR, USERNAME, PASSWORD, URL
 
 
 def get_access_token(tokens, refresh_token: str):
     """Используя refresh token обновляет access токен в файле"""
 
-    url = "http://127.0.0.1:8000/api/token/refresh/"
+    url = URL + "api/token/refresh/"
     payload = ujson.dumps({"refresh": refresh_token[7:]})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)
@@ -23,11 +23,10 @@ def get_access_token(tokens, refresh_token: str):
 def get_tokens(tokens):
     """Заносит refresh и access токены в файл"""
 
-    url = "http://127.0.0.1:8000/api/token/"
+    url = URL + "api/token/"
     payload = ujson.dumps({"phone_number": USERNAME, "password": PASSWORD})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)
-    print(response)
     if response.status_code == 401:
         raise ValueError('Ошибка в аутентификации. Неверные данные для пользователя.')
     else:
@@ -40,7 +39,7 @@ def get_tokens(tokens):
 def verify_token(token: str):
     """Проверяет работоспособность токена"""
 
-    url = "http://127.0.0.1:8000/api/token/verify/"
+    url = URL + "api/token/verify/"
     payload = ujson.dumps({"token": token[7:]})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)

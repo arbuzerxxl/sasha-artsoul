@@ -47,7 +47,7 @@ class ThinVisitSerializer(ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ('visit_date', 'client', 'master', 'service', 'detail_url',)
+        fields = ('visit', 'client', 'service', 'detail_url',)
 
 
 class ClientsSerializer(ModelSerializer):
