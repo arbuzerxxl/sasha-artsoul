@@ -216,4 +216,4 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-NEXTJS_SETTINGS = {"nextjs_server_url": "http://127.0.0.1:3000", }
+NEXTJS_SETTINGS = {"nextjs_server_url": "nextjs_app:3000", }

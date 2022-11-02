@@ -21,7 +21,8 @@ from services import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 
-urlpatterns = [path('', views.index, name='index'),
+urlpatterns = [path('', include("django_nextjs.urls")),
+               path('', views.index, name='index'),
                path('login', views.index, name='login'),
                path('req/login/', views.my_view, name='req_login'),
                path('admin/', admin.site.urls),
