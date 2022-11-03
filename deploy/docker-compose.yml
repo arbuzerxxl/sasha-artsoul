@@ -28,6 +28,8 @@ services:
       - postgres_volume:/var/lib/postgresql/data
     networks:
       - localnet
+    ports:
+      - "5433:5432"
 
   main:
     container_name: artsoul_main
@@ -47,16 +49,16 @@ services:
     networks:
       - localnet
   
-  nextjs_app:
-    container_name: nextjs
-    build: ../web-app/
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    networks:
-      - localnet
-    depends_on:
-      - main
+  # nextjs_app:
+  #   container_name: nextjs
+  #   build: ../web-app/
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - localnet
+  #   depends_on:
+  #     - main
 
 networks:
   localnet:

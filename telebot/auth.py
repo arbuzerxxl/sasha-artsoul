@@ -3,6 +3,7 @@ import shelve
 import requests
 import os
 from settings import BASE_DIR, USERNAME, PASSWORD, URL
+from logger import bot_logger
 
 
 def get_access_token(tokens, refresh_token: str):
@@ -12,8 +13,10 @@ def get_access_token(tokens, refresh_token: str):
     payload = ujson.dumps({"refresh": refresh_token[7:]})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)
-    if response.status_code == 401:  # refresh token is overdue
-        get_tokens(tokens)
+    bot_logger.debug(f"[?] Код ответа: [{response.status_code}].")
+    if response.status_code == 401:
+        bot_logger.debug(f"[!] Refresh-token не действительный.")
+        return get_tokens(tokens)
     else:
         data = ujson.loads(response.text)
         tokens['access'] = 'Bearer ' + data['access']
@@ -27,12 +30,14 @@ def get_tokens(tokens):
     payload = ujson.dumps({"phone_number": USERNAME, "password": PASSWORD})
     headers = {'Content-Type': 'application/json'}
     response = requests.request("POST", url, headers=headers, data=payload)
+    bot_logger.debug(f"[?] Код ответа: [{response.status_code}].")
     if response.status_code == 401:
-        raise ValueError('Ошибка в аутентификации. Неверные данные для пользователя.')
+        raise ValueError(f"[WARNING] Ошибка в аутентификации. Неверные данные для пользователя {USERNAME}.")
     else:
         requested_tokens = ujson.loads(response.text)
         tokens['access'] = 'Bearer ' + requested_tokens['access']
         tokens['refresh'] = 'Bearer ' + requested_tokens['refresh']
+        bot_logger.debug(f"[+] Access-token и refresh-token успешно обновлены.")
         return tokens['access']
 
 
@@ -46,6 +51,7 @@ def verify_token(token: str):
     if response.status_code == 200:
         return True
     else:
+        bot_logger.debug(f"[!] Access-token не действительный. Код ответа: [{response.status_code}].")
         return False
 
 
@@ -60,18 +66,23 @@ def get_token_from_cache(tokens, refresh_token=False):
         return get_tokens(tokens)
 
 
-def auth_with_token(auth_success=False):
+def auth_with_token():
     """Выполняет аутентификацию для бота посредством JWToken"""
 
     tokens = shelve.open(os.path.join(BASE_DIR, 'tokens'))
     token = get_token_from_cache(tokens=tokens)
+    limit_auth = 2
 
-    while not auth_success:
-        if verify_token(token=token):
-            auth_success = True
+    while True:
+        if limit_auth == 0:
+            raise ValueError(f"[!] Попыток авторизации: [{limit_auth}]. Невозможно получить действительные токены.")
+        elif verify_token(token=token):
             tokens.close()
+            bot_logger.debug(f"[+] Access-token действительный. Вход выполнен успешно.")
+            break
         else:
+            limit_auth -= 1
+            bot_logger.debug(f"[!] Попыток авторизации: [{limit_auth}].")
             token = get_token_from_cache(tokens=tokens, refresh_token=True)
-            if not verify_token(token=token):
-                token = get_tokens(tokens=tokens)
+            token = get_access_token(tokens=tokens, refresh_token=token)
     return token

@@ -17,21 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from services import views
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from .settings import NEXT_JS
 
-
-urlpatterns = [path('', include("django_nextjs.urls")),
-               path('', views.index, name='index'),
-               path('login', views.index, name='login'),
-               path('req/login/', views.my_view, name='req_login'),
+urlpatterns = [path('', include("services.urls")),
                path('admin/', admin.site.urls),
                path('accounts/', include('django.contrib.auth.urls')),
                path('api/', include('api.urls')),
                path('api-auth/', include(('rest_framework.urls', 'rest_framework'))),
-               path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-               path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-               path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
                ]
 
-# path('', include("django_nextjs.urls")),
+if NEXT_JS:
+    urlpatterns.insert(0, path('', include("django_nextjs.urls")))
