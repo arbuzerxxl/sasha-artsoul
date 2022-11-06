@@ -141,3 +141,4 @@ probe.*
 _tmp
 deploy/data/
 TODO
+telebot/tokens
