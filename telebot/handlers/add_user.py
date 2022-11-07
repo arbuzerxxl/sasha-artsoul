@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from telebot.loader import disp
+from telebot.keyboards.default import keyboard
 
 
 class AddUser(StatesGroup):
@@ -74,7 +75,7 @@ async def process_first_name(message: types.Message, state: FSMContext):
         data['first_name'] = message.text
 
     await AddUser.next()
-    await message.answer("Данный пользователь является клиентом?")
+    await message.answer("Данный пользователь является клиентом?", reply_markup=keyboard)
 
 
 @disp.message_handler(state=AddUser.is_client)
@@ -87,4 +88,4 @@ async def process_is_client(message: types.Message, state: FSMContext):
         await AddUser.next()
         await message.answer(f"Вы уверены, что необходимо добавить пользователя?\n"
                              f"Имя: {data['first_name']}\n"
-                             f"Фамилия: {data['last_name']}")
+                             f"Фамилия: {data['last_name']}", reply_markup=keyboard)

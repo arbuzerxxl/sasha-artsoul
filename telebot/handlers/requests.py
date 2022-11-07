@@ -57,7 +57,7 @@ async def show_visits(event: types.Message):
     payload = {}
     headers = {'Authorization': token}
     response = requests.request("GET", url, headers=headers, data=payload)
-    bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.content}].")
+    bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.text}].")
     if response.status_code == 200 and response.content:
         data = ujson.loads(response.content)
         await event.answer(
