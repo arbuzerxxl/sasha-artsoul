@@ -1,14 +1,16 @@
 from logger import bot_logger, configure_logging
 
 
-async def on_startup(dp):
+async def on_startup(disp):
     bot_logger.info("..Bot started..")
+    import filters
+    filters.setup(disp)
 
 
-async def on_shutdown(dp):
+async def on_shutdown(disp):
     bot_logger.info("..Bot shutdown..")
-    await dp.storage.close()
-    await dp.storage.wait_closed()
+    await disp.storage.close()
+    await disp.storage.wait_closed()
 
 
 if __name__ == '__main__':

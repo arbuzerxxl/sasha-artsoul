@@ -2,6 +2,7 @@ from aiogram import types
 from telebot.loader import disp
 from logger import bot_logger
 from telebot.keyboards.default import ReplyKeyboardRemove
+from filters import IsAdminFilter
 
 
 @disp.message_handler(commands=["hello"])
