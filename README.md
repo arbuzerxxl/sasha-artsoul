@@ -61,3 +61,6 @@ docker rm $(docker ps -qa)
 docker rmi $(docker images -q)
 docker-compose up -d --build  # from dir deploy/
 docker network rm <network_id>
+
+<!-- cmd -->
+nano ~/.bashrc

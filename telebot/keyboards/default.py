@@ -1,8 +1,6 @@
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton)
 
-yes = KeyboardButton('Да')
-no = KeyboardButton('Нет')
-
-keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(yes).add(no)
+keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(KeyboardButton('Да')).add(KeyboardButton('Нет'))

@@ -3,14 +3,14 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from telebot.settings import URL
-from auth import auth_with_token
-from logger import bot_logger
+from telebot.auth import auth_with_token
+from telebot.logger import bot_logger
 from telebot.loader import disp
 from telebot.handlers.add_user import AddUser
 
 
 def authentification():
-    """Производит аутентификацию на основе jwt."""
+    """Производит аутентификацию бота на основе jwt."""
 
     try:
         token = auth_with_token()
@@ -45,11 +45,11 @@ async def add_user(message: types.Message, state: FSMContext):
             await message.answer(f"Ок, данные о пользователе не будут занесены в БД.")
 
 
-@disp.message_handler(commands=["visits"])
-async def show_visits(event: types.Message):
+@disp.message_handler(commands=['visits'])
+async def show_visits(message: types.Message):
     """Отображание всех посещений."""
 
-    bot_logger.info(f"[?] Обработка события: {event}")
+    bot_logger.info(f"[?] Обработка события: {message}")
 
     token = authentification()
 
@@ -60,6 +60,4 @@ async def show_visits(event: types.Message):
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.text}].")
     if response.status_code == 200 and response.content:
         data = ujson.loads(response.content)
-        await event.answer(
-            f"Ok, данные получены {data}!",
-        )
+        await message.answer(text=f"Ok, данные получены {data}!")

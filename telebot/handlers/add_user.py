@@ -2,6 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
+from aiogram.utils.markdown import text, bold, italic, spoiler
 from telebot.loader import disp
 from telebot.keyboards.default import keyboard
 
@@ -17,9 +18,9 @@ class AddUser(StatesGroup):
 
 
 @disp.message_handler(commands=['add_user'])
-async def start_add_user(message: types.Message):
+async def show_visits(message: types.Message):
     await AddUser.phone_number.set()
-    await message.answer("Введите номер телефона пользователя..")
+    await message.answer(text="Введите номер телефона пользователя..")
 
 
 @disp.message_handler(state='*', commands='cancel')
@@ -30,7 +31,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         return
 
     await state.finish()
-    await message.answer('Вы отменинили ввод данных. Операция прекращена.')
+    await message.answer(text='Вы отменили ввод данных. Операция прекращена.')
 
 
 @disp.message_handler(state=AddUser.phone_number)
@@ -39,7 +40,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
         data['phone_number'] = message.text
 
     await AddUser.next()
-    await message.answer("Введите email пользователя..")
+    await message.answer(text="Введите email пользователя..")
 
 
 @disp.message_handler(state=AddUser.email)
@@ -48,7 +49,7 @@ async def process_email(message: types.Message, state: FSMContext):
         data['email'] = message.text
 
     await AddUser.next()
-    await message.answer("Введите пароль пользователя..")
+    await message.answer(text="Введите пароль пользователя..")
 
 
 @disp.message_handler(state=AddUser.password)
@@ -57,7 +58,7 @@ async def process_password(message: types.Message, state: FSMContext):
         data['password'] = message.text
 
     await AddUser.next()
-    await message.answer("Введите фамилию пользователя..")
+    await message.answer(text="Введите фамилию пользователя..")
 
 
 @disp.message_handler(state=AddUser.last_name)
@@ -66,7 +67,7 @@ async def process_last_name(message: types.Message, state: FSMContext):
         data['last_name'] = message.text
 
     await AddUser.next()
-    await message.answer("Введите имя пользователя..")
+    await message.answer(text="Введите имя пользователя..")
 
 
 @disp.message_handler(state=AddUser.first_name)
@@ -75,7 +76,7 @@ async def process_first_name(message: types.Message, state: FSMContext):
         data['first_name'] = message.text
 
     await AddUser.next()
-    await message.answer("Данный пользователь является клиентом?", reply_markup=keyboard)
+    await message.answer(text="Данный пользователь является клиентом?", reply_markup=keyboard)
 
 
 @disp.message_handler(state=AddUser.is_client)
@@ -86,6 +87,13 @@ async def process_is_client(message: types.Message, state: FSMContext):
         else:
             data['is_client'] = False
         await AddUser.next()
-        await message.answer(f"Вы уверены, что необходимо добавить пользователя?\n"
-                             f"Имя: {data['first_name']}\n"
-                             f"Фамилия: {data['last_name']}", reply_markup=keyboard)
+        pwd = spoiler(data['password'])
+        msg = text(italic("Вы уверены, что необходимо добавить пользователя?"),
+                   bold("Имя: ") + f"{data['first_name']}",
+                   bold("Фамилия: ") + f"{data['last_name']}",
+                   bold("Номер телефона: ") + f"{data['phone_number']}",
+                   bold("Email: ") + f"{data['email']}",
+                   bold("Пароль: ") + f"{pwd}",
+                   bold("Клиент: ") + f"{'Да' if data['is_client'] else 'Нет'}",
+                   sep='\n')
+        await message.answer(text=msg, parse_mode=types.ParseMode.MARKDOWN_V2, reply_markup=keyboard)

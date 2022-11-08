@@ -1,8 +1,9 @@
 from aiogram import types
+from aiogram.utils.markdown import text, bold, italic, spoiler
 from telebot.loader import disp
-from logger import bot_logger
-from telebot.keyboards.default import ReplyKeyboardRemove
-from filters import IsAdminFilter
+from telebot.logger import bot_logger
+from telebot.filters import IsAdminFilter
+from telebot.keyboards.admin_menu import keyboard
 
 
 @disp.message_handler(commands=["hello"])
@@ -29,4 +30,10 @@ async def start_handler(event: types.Message):
 
 @disp.message_handler(commands=['rm'])
 async def process_rm_command(message: types.Message):
-    await message.answer("Убираем шаблоны сообщений", reply_markup=ReplyKeyboardRemove())
+    await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
+
+
+@disp.message_handler(IsAdminFilter(), commands=['admin'])
+async def process_menu_command(message: types.Message):
+    await message.answer("Здесь отображаются только админ-команды",
+                         reply_markup=keyboard)
