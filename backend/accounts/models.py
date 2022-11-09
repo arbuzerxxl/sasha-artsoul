@@ -20,30 +20,31 @@ def normallize_phone_number(phone_number, full_number=False):
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def _create_user(self, phone_number, email, password, **extra_fields):
+    def _create_user(self, phone_number, email, password, telegram_id, **extra_fields):
         """
         Create and save a user with the given phone_number, email, and password.
         """
         if not phone_number:
             raise ValueError("Пользователь должен иметь номер телефона")
-        email = self.normalize_email(email)
         phone_number = normallize_phone_number(phone_number=phone_number)
-        user = self.model(phone_number=phone_number, email=email, **extra_fields)
+        if email:
+            email = self.normalize_email(email)
+        user = self.model(phone_number=phone_number, email=email, telegram_id=telegram_id, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, phone_number, email=None, password=None, **extra_fields):
+    def create_user(self, phone_number, email=None, password=None, telegram_id=None, **extra_fields):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         extra_fields.setdefault("is_client", True)
 
-        if extra_fields.get("is_client") is not True:
+        if extra_fields.get("is_client") is not True:  # FIXME: не важно что возвращается, пользователь все равно добавляется
             raise ValueError("Пользователь обязательно должен иметь статус 'Клиент'")
 
-        return self._create_user(phone_number, email, password, **extra_fields)
+        return self._create_user(phone_number, email, password, telegram_id, **extra_fields)
 
-    def create_superuser(self, phone_number, email=None, password=None, **extra_fields):
+    def create_superuser(self, phone_number, email=None, password=None, telegram_id=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_client", False)
@@ -53,7 +54,7 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
 
-        return self._create_user(phone_number, email, password, **extra_fields)
+        return self._create_user(phone_number, email, password, telegram_id, **extra_fields)
 
     def with_perm(
         self, perm, is_active=True, include_superusers=True, backend=None, obj=None
@@ -85,21 +86,41 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
 
-    phone_number_validator = PhoneNumberValidator()
-
     phone_number = models.CharField(
         max_length=12,
         unique=True,
         help_text="Обязательно. Максимально допустимое кол-во символов - 18. Цифры и символы '()', '+' и '_'.",
-        validators=[phone_number_validator],
+        validators=[PhoneNumberValidator()],
         error_messages={
-            "unique": "Пользователь с таким номером телефона уже существует."
+            "unique": "Пользователь с таким номером телефона уже существует.",
+            "null": "Пользователь должен иметь номер телефона."
         },
         verbose_name='Номер телефона'
     )
-    first_name = models.CharField(_("first name"), max_length=150, null=True, blank=False)
-    last_name = models.CharField(_("last name"), max_length=150, null=True, blank=False)
-    email = models.EmailField(_("email address"), blank=True)
+    telegram_id = models.IntegerField(
+        unique=True,
+        error_messages={
+            "unique": "Пользователь с таким Telegram ID уже существует."
+        },
+        verbose_name="Telegram ID пользователя",
+        blank=True,
+        null=True
+    )
+    first_name = models.CharField(
+        _("first name"),
+        max_length=150,
+        blank=False
+    )
+    last_name = models.CharField(
+        _("last name"),
+        max_length=150,
+        blank=False
+    )
+    email = models.EmailField(
+        _("email address"),
+        blank=True,
+        null=True
+    )
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
@@ -125,22 +146,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ["last_name", "first_name", "email"]
+    REQUIRED_FIELDS = ["last_name", "first_name", "telegram_id"]
 
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
         abstract = False
         swappable = "AUTH_USER_MODEL"
-        unique_together = [['first_name', 'last_name']]
 
     def __str__(self):
         return self.last_name + ' ' + self.first_name
 
     def clean(self):
         super().clean()
-        self.phone_number = normallize_phone_number(self.phone_number)
-        self.email = self.__class__.objects.normalize_email(self.email)
+        if self.phone_number:
+            self.phone_number = normallize_phone_number(self.phone_number)
+        if self.email:
+            self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
         """

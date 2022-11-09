@@ -2,31 +2,28 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.markdown import text, bold, italic, spoiler
+from aiogram.utils.markdown import text, bold, italic, spoiler, underline
+
+from emoji import emojize
 from telebot.loader import disp
 from telebot.keyboards.default import keyboard
 
 
 class AddUser(StatesGroup):
-    phone_number = State()
-    email = State()
-    password = State()
-    last_name = State()
+    check_full_name = State()
     first_name = State()
-    is_client = State()
+    last_name = State()
+    phone_number = State()
+    password = State()
     request = State()
-
-
-@disp.message_handler(commands=['add_user'])
-async def show_visits(message: types.Message):
-    await AddUser.phone_number.set()
-    await message.answer(text="Введите номер телефона пользователя..")
 
 
 @disp.message_handler(state='*', commands='cancel')
 @disp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
+
     current_state = await state.get_state()
+
     if current_state is None:
         return
 
@@ -34,40 +31,43 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.answer(text='Вы отменили ввод данных. Операция прекращена.')
 
 
-@disp.message_handler(state=AddUser.phone_number)
-async def process_phone_number(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['phone_number'] = message.text
+@disp.message_handler(commands=['registration'])
+async def process_registration(message: types.Message):
 
-    await AddUser.next()
-    await message.answer(text="Введите email пользователя..")
+    await AddUser.check_full_name.set()
 
+    msg = emojize(text(
+        f"<i>{message.chat.first_name}, cпасибо, что решили зарегистрироваться. Я Вас не подведу!</i>",
+        f"<i>Сперва мне нужно понять, могу ли я использовать эти данные как <b>Имя</b> и <b>Фамилия</b>? :eyes:</i>",
+        f"<b>{message.chat.last_name} {message.chat.first_name}</b>",
+        sep='\n'), language='alias')
 
-@disp.message_handler(state=AddUser.email)
-async def process_email(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['email'] = message.text
-
-    await AddUser.next()
-    await message.answer(text="Введите пароль пользователя..")
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
 
 
-@disp.message_handler(state=AddUser.password)
-async def process_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['password'] = message.text
+@disp.message_handler(state=AddUser.check_full_name)
+async def process_check_full_name(message: types.Message, state: FSMContext):
 
-    await AddUser.next()
-    await message.answer(text="Введите фамилию пользователя..")
+    if message.text == 'Да':
+        await AddUser.phone_number.set()
+        async with state.proxy() as data:
+            data['first_name'] = message.chat.first_name
+            data['last_name'] = message.chat.last_name
 
+        msg = emojize(text(f"<i>Еще мне очень-очень нужен Ваш <b>номер телефона</b> для быстрой обратной связи</i> :flushed:",
+                           f":zipper_mouth_face: <i>Можете на меня рассчитывать, я буду хранить Ваш номер в своем сердце.. кхм-кхм.. хранилище.</i> :purple_heart:",
+                           sep='\n'), language='alias')
 
-@disp.message_handler(state=AddUser.last_name)
-async def process_last_name(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['last_name'] = message.text
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
-    await AddUser.next()
-    await message.answer(text="Введите имя пользователя..")
+    else:
+        await AddUser.first_name.set()
+
+        msg = emojize(text(f"<i>Эх..Тогда мне нужно знать, как я могу к Вам обращаться? :sweat:</i>",
+                           f"<i>Сперва мне нужно узнать <b>ваше имя</b></i> :face_with_rolling_eyes:",
+                           sep='\n'), language='alias')
+
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
 @disp.message_handler(state=AddUser.first_name)
@@ -76,24 +76,51 @@ async def process_first_name(message: types.Message, state: FSMContext):
         data['first_name'] = message.text
 
     await AddUser.next()
-    await message.answer(text="Данный пользователь является клиентом?", reply_markup=keyboard)
+    msg = emojize(text(f":frowning: <i> Вау! Я первый раз слышу такое чудесное имя! Может попытаетесь удивить <b>фамилией</b>?</i> :smirk:",
+                       sep='\n'), language='alias')
+
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
-@disp.message_handler(state=AddUser.is_client)
-async def process_is_client(message: types.Message, state: FSMContext):
+@disp.message_handler(state=AddUser.last_name)
+async def process_last_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        if message.text == 'Да':
-            data['is_client'] = True
-        else:
-            data['is_client'] = False
+        data['last_name'] = message.text
+
+    await AddUser.next()
+    msg = emojize(text(f":exploding_head: :exploding_head: :exploding_head:",
+                       f"<i>Еще мне очень-очень нужен Ваш <b>номер телефона</b> для быстрой обратной связи</i> :flushed:",
+                       f":zipper_mouth_face: <i>Можете на меня рассчитывать, я буду хранить Ваш номер в своем сердце.. кхм-кхм.. хранилище.</i> :purple_heart:",
+                       sep='\n'), language='alias')
+
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(state=AddUser.phone_number)
+async def process_phone_number(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['phone_number'] = message.text
+
+    await AddUser.next()
+    msg = emojize(text(f":full_moon_with_face: <span class='tg-spoiler'><i>Последнее что мне необходимо, это пароль.</i></span>",
+                       f"<span class='tg-spoiler'><i>Это обезопасит ваши данные и я всегда смогу Вас узнать! </i></span> :full_moon_with_face:",
+                       sep='\n'), language='alias')
+
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(state=AddUser.password)
+async def process_password(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['password'] = message.text
+        data['is_client'] = True
+        data['telegram_id'] = message.from_id
         await AddUser.next()
-        pwd = spoiler(data['password'])
-        msg = text(italic("Вы уверены, что необходимо добавить пользователя?"),
-                   bold("Имя: ") + f"{data['first_name']}",
-                   bold("Фамилия: ") + f"{data['last_name']}",
-                   bold("Номер телефона: ") + f"{data['phone_number']}",
-                   bold("Email: ") + f"{data['email']}",
-                   bold("Пароль: ") + f"{pwd}",
-                   bold("Клиент: ") + f"{'Да' if data['is_client'] else 'Нет'}",
-                   sep='\n')
-        await message.answer(text=msg, parse_mode=types.ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+        msg = emojize(text(f":pencil2: <i>Фуух.. Надеюсь я успел за Вами и все данные верны? </i>",
+                           f"<i>Пока вы проверяете, я немного отдохну..</i>:wine_glass: ",
+                           f"<b>Имя: </b> {data['first_name']}",
+                           f"<b>Фамилия: </b> {data['last_name']}",
+                           f"<b>Номер телефона: </b> {data['phone_number']}",
+                           f"<b>Пароль: </b> <span class='tg-spoiler'>{data['phone_number']}</span>",
+                           sep='\n'), language='alias')
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
