@@ -3,23 +3,13 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from telebot.settings import URL
-from telebot.auth import auth_with_token
+from telebot.handlers.requests.user import authentification
 from telebot.logger import bot_logger
 from telebot.loader import disp
-from telebot.handlers.add_user import AddUser
+from telebot.handlers.admin.create_user import CreateUser
 
 
-def authentification():
-    """Производит аутентификацию бота на основе jwt."""
-
-    try:
-        token = auth_with_token()
-        return token
-    except ValueError as wrong_user_data:
-        bot_logger.exception(wrong_user_data)
-
-
-@disp.message_handler(state=AddUser.request)
+@disp.message_handler(state=CreateUser.request)
 async def add_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
     async with state.proxy() as data:
@@ -43,21 +33,3 @@ async def add_user(message: types.Message, state: FSMContext):
             bot_logger.info(f"[-] Отмена создания нового пользователя от [{message.from_id}].")
             await state.finish()
             await message.answer(f"Ок, данные о пользователе не будут занесены в БД.")
-
-
-@disp.message_handler(commands=['visits'])
-async def show_visits(message: types.Message):
-    """Отображание всех посещений."""
-
-    bot_logger.info(f"[?] Обработка события: {message}")
-
-    token = authentification()
-
-    url = URL + "api/visits/"
-    payload = {}
-    headers = {'Authorization': token}
-    response = requests.request("GET", url, headers=headers, data=payload)
-    bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.text}].")
-    if response.status_code == 200 and response.content:
-        data = ujson.loads(response.content)
-        await message.answer(text=f"Ok, данные получены {data}!")

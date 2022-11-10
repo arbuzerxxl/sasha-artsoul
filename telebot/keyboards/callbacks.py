@@ -8,7 +8,7 @@ from aiogram.utils.callback_data import CallbackData
 #     pass
 
 # CALLBACKS
-# add_user_callback = CallbackData("add_user")
+user_callback = CallbackData("user", "action")
 
 # KEYBOARDS
 # keyboard = InlineKeyboardMarkup()
