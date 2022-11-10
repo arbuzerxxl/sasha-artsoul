@@ -9,7 +9,7 @@ from telebot.loader import disp
 from telebot.handlers.user.registration import RegistrationUser
 
 
-def authentification():
+def authorization():
     """Производит аутентификацию бота на основе jwt."""
 
     try:
@@ -20,13 +20,13 @@ def authentification():
 
 
 @disp.message_handler(state=RegistrationUser.request)
-async def add_user(message: types.Message, state: FSMContext):
+async def process_request_registration_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
     async with state.proxy() as data:
         if message.text == 'Да':
             bot_logger.info(f"[?] Обработка события: {message}")
 
-            token = authentification()
+            token = authorization()
 
             url = URL + "api/users/"
             headers = {'Content-Type': 'application/json', 'Authorization': token}
@@ -51,7 +51,7 @@ async def show_visits(message: types.Message):
 
     bot_logger.info(f"[?] Обработка события: {message}")
 
-    token = authentification()
+    token = authorization()
 
     url = URL + "api/visits/"
     payload = {}

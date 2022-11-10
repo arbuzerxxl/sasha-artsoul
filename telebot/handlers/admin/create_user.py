@@ -1,10 +1,8 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher.filters import Text
 from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
-from telebot.logger import bot_logger
 from telebot.keyboards.callbacks import user_callback
 from telebot.handlers.defaults import cancel_handler
 from telebot.keyboards.default import keyboard
@@ -18,7 +16,6 @@ class CreateUser(StatesGroup):
 
 @disp.callback_query_handler(user_callback.filter(action="create"))
 async def process_create_user(query: types.CallbackQuery):
-    bot_logger.debug(f"{query}")
 
     await CreateUser.set_data.set()
 
@@ -42,7 +39,6 @@ async def process_create_user(message: types.Message, state: FSMContext):
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
     else:
-        bot_logger.info(f"[-] Отмена создания нового пользователя от [{message.from_id}].")
 
         await state.finish()
 

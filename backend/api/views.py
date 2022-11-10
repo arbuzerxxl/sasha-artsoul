@@ -12,9 +12,15 @@ from .permissions import IsClient
 
 class UserViewSet(ModelViewSet):
     model = get_user_model()
-    queryset = model.objects.all()
+    queryset = model.objects.none()
     serializer_class = UserSerializer
     permission_classes = (IsAdminUser, )
+
+    def get_queryset(self):
+        if self.request.data:
+            return self.model.objects.filter(phone_number=self.request.data['phone_number'])
+        else:
+            return self.model.objects.all()
 
 
 class VisitViewSet(ModelViewSet):

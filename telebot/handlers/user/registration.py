@@ -19,7 +19,7 @@ class RegistrationUser(StatesGroup):
 
 
 @disp.message_handler(commands=['registration'])
-async def process_registration(message: types.Message):
+async def process_registration_user(message: types.Message):
 
     await RegistrationUser.check_full_name.set()
 
