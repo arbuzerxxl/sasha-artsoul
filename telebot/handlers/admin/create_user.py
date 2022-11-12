@@ -5,13 +5,13 @@ from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
 from telebot.keyboards.callbacks import user_callback
 from telebot.handlers.defaults import cancel_handler
-from telebot.keyboards.default import keyboard
+from telebot.keyboards.default import yes_no_keyboard
 
 
 class CreateUser(StatesGroup):
     set_data = State()
-    approve = State()
-    request = State()
+    approve_data = State()
+    request_data = State()
 
 
 @disp.callback_query_handler(user_callback.filter(action="create"))
@@ -21,7 +21,7 @@ async def process_create_user(query: types.CallbackQuery):
 
     msg = text(f"<i>Вы хотите добавить нового пользователя, верно?</i>")
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=yes_no_keyboard)
 
 
 @disp.message_handler(state=CreateUser.set_data)
@@ -47,7 +47,7 @@ async def process_create_user(message: types.Message, state: FSMContext):
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
-@disp.message_handler(state=CreateUser.approve)
+@disp.message_handler(state=CreateUser.approve_data)
 async def process_create_user(message: types.Message, state: FSMContext):
     response = message.text.split(" ")
     async with state.proxy() as data:
@@ -63,4 +63,4 @@ async def process_create_user(message: types.Message, state: FSMContext):
                    f"<b>Номер телефона: </b> {data['phone_number']}",
                    f"<b>Пароль: </b> <span class='tg-spoiler'>{data['password']}</span>",
                    sep='\n')
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=yes_no_keyboard)

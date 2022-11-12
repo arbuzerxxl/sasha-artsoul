@@ -1,12 +1,10 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher.filters import Text
 from aiogram.utils.markdown import text
 from emoji import emojize
 from telebot.loader import disp
-from telebot.keyboards.default import keyboard
-from telebot.handlers.defaults import cancel_handler
+from telebot.keyboards.default import yes_no_keyboard, continue_cancel_keyboard
 
 
 class RegistrationUser(StatesGroup):
@@ -29,7 +27,7 @@ async def process_registration_user(message: types.Message):
         f"<b>{message.chat.last_name} {message.chat.first_name}</b>",
         sep='\n'), language='alias')
 
-    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=yes_no_keyboard)
 
 
 @disp.message_handler(state=RegistrationUser.check_full_name)
@@ -110,4 +108,4 @@ async def process_password(message: types.Message, state: FSMContext):
                            f"<b>Номер телефона: </b> {data['phone_number']}",
                            f"<b>Пароль: </b> <span class='tg-spoiler'>{data['password']}</span>",
                            sep='\n'), language='alias')
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)

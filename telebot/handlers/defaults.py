@@ -4,11 +4,12 @@ from aiogram.dispatcher.filters import Text
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.filters import IsAdminFilter
-from telebot.keyboards.admin.menu import keyboard
+from telebot.keyboards.admin import visit, menu, user
+from telebot.keyboards.callbacks import admin_callback
 
 
 @disp.message_handler(state='*', commands='cancel')
-@disp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
+@disp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
 
     current_state = await state.get_state()
@@ -61,6 +62,13 @@ async def process_rm_command(message: types.Message):
 
 
 @disp.message_handler(IsAdminFilter(), commands=['admin'])
-async def process_menu_command(message: types.Message):
+async def process_admin_command(message: types.Message):
     await message.answer("Здесь отображаются только админ-команды",
-                         reply_markup=keyboard)
+                         reply_markup=menu)
+
+
+@disp.callback_query_handler(admin_callback.filter(action="user"))
+async def process_admin_to_user(query: types.CallbackQuery):
+    msg = "<i>Вы можете добавить, изменить или удалить пользователя</i>"
+
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=user)

@@ -1,66 +1,42 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
 from telebot.keyboards.callbacks import user_callback
-from telebot.handlers.defaults import cancel_handler
-from telebot.keyboards.default import keyboard
+from handlers.admin.search_user import SearchUser
+from telebot.keyboards.default import continue_cancel_keyboard, user_form_keyboard
 
 
 class EditUser(StatesGroup):
-    find = State()
-    check = State()
+    select_change = State()
     set_data = State()
-    request = State()
+    request_data = State()
 
 
 @disp.callback_query_handler(user_callback.filter(action="edit"))
-async def process_create_user(query: types.CallbackQuery):
+async def process_edit_user(query: types.CallbackQuery, state: FSMContext):
 
-    await EditUser.find.set()
+    await SearchUser.set_data.set()
+    async with state.proxy() as state_data:
+        state_data['method'] = 'edit'
+    msg = "<i>Вы хотите изменить пользователя, верно?</i>"
 
-    msg = text("<i>Вы хотите изменить пользователя, верно?</i>")
-
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=keyboard)
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
 
 
-@disp.message_handler(state=EditUser.find)
-async def process_find_create_user(message: types.Message, state: FSMContext):
+@disp.message_handler(state=EditUser.select_change)
+async def process_select_change_edit_user(message: types.Message, state: FSMContext):
 
-    if message.text == 'Да':
-        await EditUser.next()
-
-        msg = text("<i>Необходимо ввести номер телефона для поиска пользователя в БД.</i>",
-                   "<i>Пример:</i>",
-                   "89991112233",
-                   sep='\n')
-
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-
-    else:
-        await state.finish()
-
-        msg = text(f"<i>Ок, данные о пользователе не будут занесены в БД.</i>")
-
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+    await EditUser.next()
+    msg = "<i>Что будем менять?</i>"
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=user_form_keyboard)
 
 
 @disp.message_handler(state=EditUser.set_data)
 async def process_set_data_edit_user(message: types.Message, state: FSMContext):
 
-    if message.text == 'Список':
+    async with state.proxy() as state_data:
+        state_data['user_data_key'] = message.text
         await EditUser.next()
-        msg = text("<i>Введите новые данные соблюдая порядок ввода данных:</i>",
-                   "<b>Имя Фамилия Номер телефона Пароль</b>",
-                   "<i>Правильно:</i>",
-                   "Иван Иванов 89991112233",
-                   "<i>Неправильно:</i>",
-                   "Иван 89991112233 Иванов")
+        msg = f"<i>Введите новые данные для: <b>{message.text}</b></i>"
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-    else:
-        async with state.proxy() as state_data:
-            state_data['user_data_key'] = message.text
-            await EditUser.next()
-            msg = text(f"<i>Введите новые данные для: {message.text}</i>")
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
