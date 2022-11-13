@@ -58,7 +58,7 @@ async def process_check_user(message: types.Message, state: FSMContext):
                 msg = "<code>Было найдено несколько пользователей!</code>"
                 await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
             else:
-                state_data['id'] = response_data[0]['id']
+                state_data['user_id'] = response_data[0]['id']
                 state_data['phone_number'] = response_data[0]['phone_number']
                 state_data['is_client'] = response_data[0]['is_client']
                 msg = f"<i>Пользователь <b>{response_data[0]['first_name']} {response_data[0]['last_name']}</b> найден.</i>"
@@ -133,7 +133,7 @@ async def process_request_edit_user(message: types.Message, state: FSMContext):
 
     async with state.proxy() as state_data:
 
-        url = URL + f"api/users/{state_data.pop('id')}/"
+        url = URL + f"api/users/{state_data.pop('user_id')}/"
         user_data_key = API_FORM_KEYS.get(state_data.pop('user_data_key'))
         state_data[user_data_key] = message.text
 
@@ -157,34 +157,49 @@ async def process_request_edit_user(message: types.Message, state: FSMContext):
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
-@disp.message_handler(state=edit_user.EditUser.request_change_status)
-async def process_request_change_status_user(message: types.Message, state: FSMContext):
-    """Изменение статуса пользователя (клиент/мастер) в БД на основе API."""
+@disp.message_handler(state=edit_user.EditUser.request_check_and_change_status)
+async def process_request_check_and_change_status_user(message: types.Message, state: FSMContext):
+    """Проверка статуса пользователя (клиент/мастер/none) в БД на основе API."""
+
+    bot_logger.info(f"[?] Обработка события: {message}")
 
     async with state.proxy() as state_data:
-        if state_data['is_client']:
 
-            url = URL + f"api/clients/{state_data.pop('id')}/"  # TODO: разбить на POST и PATCH
-        user_data_key = API_FORM_KEYS.get(state_data.pop('user_data_key'))
-        state_data[user_data_key] = message.text
+        if state_data["is_client"]:
+            url = URL + "api/clients/"
+        else:
+            url = URL + "api/masters/"
+        data = {'user': state_data['phone_number']}
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    await state.finish()
 
     token = authorization()
 
     headers = {'Content-Type': 'application/json', 'Authorization': token}
-    data = await state.get_data()
+
     payload = ujson.dumps(data)
-    await state.finish()
-    response = requests.request("PATCH", url, headers=headers, data=payload)
+
+    response = requests.request("GET", url, headers=headers, data=payload)
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}].")
     if response.status_code == 200 and response.content:
-        msg = "<i>Ok, пользователь успешно изменен!</i>"
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
         response_data = ujson.loads(response.content)
-        bot_logger.debug(f"[+] Пользователь изменен. ID: {response_data['id']}. TG: {response_data.get('telegram_id', None)}.")
+        data['user_type'] = message.text
+        msg = f"<i>Статус пользователя {data['user']} изменен на <b>{data['user_type']}</b></i>"
+
+        if not response_data:
+            edit_user.EditUser.next()
+            response = requests.request("POST", url, headers=headers, data=payload)
+        else:
+            url = response_data[0]['detail_url']
+            response = requests.request("PATCH", url, headers=headers, data=payload)
+
+        if response.status_code == 200 and response.content:
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+        else:
+            msg = f"<code>Невозможно сменить статус для пользователя {data['user']}! Ошибка: [{response.status_code}]</code>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
     else:
-        msg = f"<code>Что-то пошло не так! Ошибка: [{response.status_code}]</code>"
+        msg = f"<code>Невозможно сменить статус для пользователя {data['user']}! Ошибка: [{response.status_code}]</code>"
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
@@ -193,7 +208,7 @@ async def process_request_delete_user(message: types.Message, state: FSMContext)
     """Удаление пользователя в БД на основе API."""
 
     async with state.proxy() as state_data:
-        user_id = state_data.pop('id')
+        user_id = state_data.pop('user_id')
         user_phone_number = state_data.pop('phone_number')
         url = URL + f"api/users/{user_id}/"
         await state.finish()

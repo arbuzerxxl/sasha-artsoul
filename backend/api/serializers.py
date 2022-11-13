@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 class UserSerializer(ModelSerializer):
 
-    detail_url = HyperlinkedIdentityField(view_name='clients-detail')
+    detail_url = HyperlinkedIdentityField(view_name='users-detail')
 
     class Meta:
         model = get_user_model()

@@ -13,7 +13,7 @@ class UserViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
-        if self.request.data:
+        if self.request.data.get('phone_number', None):
             return self.model.objects.filter(phone_number=self.request.data['phone_number'])
         else:
             return self.model.objects.all()
@@ -47,8 +47,10 @@ class ClientViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            return self.model.objects.all()
+        if self.request.data.get('user', None):
+            return self.model.objects.filter(user=self.request.data['user'])
+        else:
+            return self.model.objects.all()  # TODO: возможно придется поменять для админа
 
 
 class MasterViewSet(ModelViewSet):
@@ -58,5 +60,7 @@ class MasterViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
+        if self.request.data.get('user', None):
+            return self.model.objects.filter(user=self.request.data['user'])
+        else:
             return self.model.objects.all()

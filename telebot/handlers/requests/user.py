@@ -31,7 +31,7 @@ async def process_request_registration_user(message: types.Message, state: FSMCo
                 f"[+] Зарегистрирован новый пользователь. ID: {response_data['id']}, TG: {response_data['telegram_id']}, PNONE: {response_data['phone_number']}"
             )
             url = URL + "api/clients/"
-            payload = ujson.dumps({"user": response_data['phone_number'], "client_type": "Обычный клиент"})
+            payload = ujson.dumps({"user": response_data['phone_number'], "user_type": "Обычный клиент"})
             response = requests.request("POST", url, headers=headers, data=payload)
 
             if response.status_code == 201 and response.content:
