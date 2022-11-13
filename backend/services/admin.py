@@ -1,21 +1,35 @@
 from django.contrib import admin
-from .models import Client, Master, Visit, User
-
-# Register your models here.
-admin.site.register(Master)
+from .models import Calendar, Client, Master, Visit
 
 
-@admin.register(Visit)
-class VisitAdmin(admin.ModelAdmin):
-    list_display = ('visit_date', 'status', 'service_price', 'client', 'master', 'total', 'review', 'rating')
-    list_filter = ('visit_date', 'status', 'client')
-
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'first_name', 'phone_number', 'is_client')
+@admin.register(Master)
+class MasterAdmin(admin.ModelAdmin):
+    list_display = ('user', 'user_type')
 
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('user', 'client_type')
+    list_display = ('user', 'user_type')
+
+
+@admin.register(Calendar)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ('date_time', 'master', 'is_free')
+
+
+@admin.register(Visit)
+class VisitAdmin(admin.ModelAdmin):
+    list_display = ('visit', 'status', 'service', 'client', 'total', 'review', 'rating')
+    list_filter = ('visit', 'status', 'client')
+
+    def delete_queryset(self, request, queryset):
+
+        for item in queryset:
+            item.visit.is_free = True
+            item.visit.save()
+
+        queryset.delete()
+
+    def delete_model(self, request, obj):
+
+        obj.delete()

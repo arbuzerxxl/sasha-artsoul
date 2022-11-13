@@ -17,12 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from services import views
+from .settings import NEXT_JS
 
-
-urlpatterns = [path('', include("django_nextjs.urls")),
-               path('accounts/', include('django.contrib.auth.urls')),
+urlpatterns = [path('', include("services.urls")),
                path('admin/', admin.site.urls),
-               path('', views.index, name='index'),
+               path('accounts/', include('django.contrib.auth.urls')),
                path('api/', include('api.urls')),
+               path('api-auth/', include(('rest_framework.urls', 'rest_framework'))),
                ]
+
+if NEXT_JS:
+    urlpatterns.insert(0, path('', include("django_nextjs.urls")))
