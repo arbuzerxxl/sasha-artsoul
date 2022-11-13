@@ -4,12 +4,12 @@ from .models import Calendar, Client, Master, Visit
 
 @admin.register(Master)
 class MasterAdmin(admin.ModelAdmin):
-    list_display = ('user', 'qualification')
+    list_display = ('user', 'user_type')
 
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('user', 'client_type')
+    list_display = ('user', 'user_type')
 
 
 @admin.register(Calendar)

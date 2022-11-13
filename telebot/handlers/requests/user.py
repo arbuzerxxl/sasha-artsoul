@@ -12,6 +12,7 @@ from telebot.handlers.user.registration import RegistrationUser
 @disp.message_handler(state=RegistrationUser.request)
 async def process_request_registration_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
+
     async with state.proxy() as data:
         bot_logger.info(f"[?] Обработка события: {message}")
 

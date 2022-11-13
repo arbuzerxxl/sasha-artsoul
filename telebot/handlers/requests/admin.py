@@ -60,6 +60,7 @@ async def process_check_user(message: types.Message, state: FSMContext):
             else:
                 state_data['id'] = response_data[0]['id']
                 state_data['phone_number'] = response_data[0]['phone_number']
+                state_data['is_client'] = response_data[0]['is_client']
                 msg = f"<i>Пользователь <b>{response_data[0]['first_name']} {response_data[0]['last_name']}</b> найден.</i>"
                 await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
 
@@ -72,28 +73,53 @@ async def process_check_user(message: types.Message, state: FSMContext):
 @disp.message_handler(state=create_user.CreateUser.request_data)
 async def process_request_create_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
+
     bot_logger.info(f"[?] Обработка события: {message}")
 
-    async with state.proxy() as data:
+    async with state.proxy():
 
-        data = await state.get_data()
-        payload = ujson.dumps(data)
+        state_data = await state.get_data()
 
     await state.finish()
 
     token = authorization()
     url = URL + "api/users/"
     headers = {'Content-Type': 'application/json', 'Authorization': token}
-    payload = ujson.dumps(data)
+    payload = ujson.dumps(state_data)
     response = requests.request("POST", url, headers=headers, data=payload)
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.text}].")
     response_data = ujson.loads(response.content)
 
     if response.status_code == 201 and response.content:
-        msg = "<i>Пользователь успешно добавлен!</i>"
-        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+        bot_logger.info(
+            f"[+] Зарегистрирован новый пользователь. ID: {response_data['id']}, TG: {response_data['telegram_id']}, PNONE: {response_data['phone_number']}"
+        )
+
+        data = {"user": response_data['phone_number']}
+
+        if state_data["is_client"]:
+            url = URL + "api/clients/"
+            data["user_type"] = "Обычный клиент"
+        else:
+            url = URL + "api/masters/"
+            data["user_type"] = "Топ-мастер"
+
+        payload = ujson.dumps(data)
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+        if response.status_code == 201 and response.content:
+            bot_logger.info(f"[+] Статус пользователя {response_data['phone_number']} изменен на {data['user_type']}")
+            msg = "<i>Операция успешно завершена!</i>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+        else:
+            bot_logger.info(f"[-] Попытка изменить статус нового пользователя {response_data['phone_number']} оказалась безуспешной.")
+            msg = "<i>Пользователь был добавлен, но статус не изменен!</i>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
     else:
-        msg = f"<code>Пользователь не может быть создан! Ошибка: [{response.status_code}]</code>"
+        bot_logger.debug("[!] Попытка зарегистрировать нового пользователя оказалась безуспешной.")
+        msg = "<code>Создание пользователя прервано!</code>"
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
         for error in response_data.values():
@@ -101,13 +127,44 @@ async def process_request_create_user(message: types.Message, state: FSMContext)
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
-@disp.message_handler(state=edit_user.EditUser.request_data)
+@disp.message_handler(state=edit_user.EditUser.request_user_data)
 async def process_request_edit_user(message: types.Message, state: FSMContext):
     """Изменение пользователя в БД на основе API."""
 
     async with state.proxy() as state_data:
 
         url = URL + f"api/users/{state_data.pop('id')}/"
+        user_data_key = API_FORM_KEYS.get(state_data.pop('user_data_key'))
+        state_data[user_data_key] = message.text
+
+    bot_logger.info(f"[?] Обработка события: {message}")
+
+    token = authorization()
+
+    headers = {'Content-Type': 'application/json', 'Authorization': token}
+    data = await state.get_data()
+    payload = ujson.dumps(data)
+    await state.finish()
+    response = requests.request("PATCH", url, headers=headers, data=payload)
+    bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}].")
+    if response.status_code == 200 and response.content:
+        msg = "<i>Ok, пользователь успешно изменен!</i>"
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+        response_data = ujson.loads(response.content)
+        bot_logger.debug(f"[+] Пользователь изменен. ID: {response_data['id']}. TG: {response_data.get('telegram_id', None)}.")
+    else:
+        msg = f"<code>Что-то пошло не так! Ошибка: [{response.status_code}]</code>"
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(state=edit_user.EditUser.request_change_status)
+async def process_request_change_status_user(message: types.Message, state: FSMContext):
+    """Изменение статуса пользователя (клиент/мастер) в БД на основе API."""
+
+    async with state.proxy() as state_data:
+        if state_data['is_client']:
+
+            url = URL + f"api/clients/{state_data.pop('id')}/"  # TODO: разбить на POST и PATCH
         user_data_key = API_FORM_KEYS.get(state_data.pop('user_data_key'))
         state_data[user_data_key] = message.text
 

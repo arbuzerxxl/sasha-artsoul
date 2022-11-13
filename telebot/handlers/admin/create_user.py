@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
-from telebot.keyboards.callbacks import user_callback
+from telebot.keyboards.callbacks import client_callback, master_callback
 from telebot.keyboards.default import continue_cancel_keyboard
 
 
@@ -13,12 +13,27 @@ class CreateUser(StatesGroup):
     request_data = State()
 
 
-@disp.callback_query_handler(user_callback.filter(action="create"))
-async def process_create_user(query: types.CallbackQuery):
+@disp.callback_query_handler(client_callback.filter(action="create"))
+async def process_create_client(query: types.CallbackQuery, state: FSMContext):
+
+    await CreateUser.set_data.set()
+    async with state.proxy() as state_data:
+        state_data['is_client'] = True
+
+    msg = text(f"<i>Вы хотите добавить нового клиента, верно?</i>")
+
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
+
+
+@disp.callback_query_handler(master_callback.filter(action="create"))
+async def process_create_master(query: types.CallbackQuery, state: FSMContext):
 
     await CreateUser.set_data.set()
 
-    msg = text(f"<i>Вы хотите добавить нового пользователя, верно?</i>")
+    async with state.proxy() as state_data:
+        state_data['is_client'] = False
+
+    msg = text(f"<i>Вы хотите добавить нового мастера, верно?</i>")
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
 
@@ -45,7 +60,6 @@ async def process_create_user(message: types.Message, state: FSMContext):
         data['last_name'] = response[1]
         data['phone_number'] = response[2]
         data['password'] = response[3]
-        data['is_client'] = True
         await CreateUser.next()
         msg = text(f"<i>Все данные верны?</i>",
                    f"<b>Имя: </b> {data['first_name']}",

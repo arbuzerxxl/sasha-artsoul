@@ -13,4 +13,14 @@ continue_cancel_keyboard = ReplyKeyboardMarkup(
 user_form_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     one_time_keyboard=True
-).add(KeyboardButton('Имя')).add(KeyboardButton('Фамилия')).add(KeyboardButton('Пароль')).add(KeyboardButton('Отмена'))
+).add(KeyboardButton('Имя')).add(KeyboardButton('Фамилия')).add(KeyboardButton('Пароль')).add(KeyboardButton('Статус')).add(KeyboardButton('Отмена'))
+
+client_status_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(KeyboardButton('Постоянный клиент')).add(KeyboardButton('Обычный клиент')).add(KeyboardButton('Первый визит')).add(KeyboardButton('Отмена'))
+
+master_status_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(KeyboardButton('Топ-мастер')).add(KeyboardButton('Обычный мастер')).add(KeyboardButton('Ученик')).add(KeyboardButton('Отмена'))

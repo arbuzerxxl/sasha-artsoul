@@ -2,7 +2,7 @@ import os
 from aiogram import types
 from telebot.auth import auth_with_token
 from telebot.logger import bot_logger
-from telebot.loader import disp, bot, DEBUG
+from telebot.loader import bot, DEBUG
 
 
 async def sender_to_admin(msg: types.Message):

@@ -4,8 +4,8 @@ from aiogram.dispatcher.filters import Text
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.filters import IsAdminFilter
-from telebot.keyboards.admin import visit, menu, user
-from telebot.keyboards.callbacks import admin_callback
+from telebot.keyboards.admin import visit, menu, user, client, master
+from telebot.keyboards.callbacks import admin_callback, user_callback
 
 
 @disp.message_handler(state='*', commands='cancel')
@@ -67,8 +67,22 @@ async def process_admin_command(message: types.Message):
                          reply_markup=menu)
 
 
-@disp.callback_query_handler(admin_callback.filter(action="user"))
+@disp.callback_query_handler(admin_callback.filter(action="users"))
 async def process_admin_to_user(query: types.CallbackQuery):
-    msg = "<i>Вы можете добавить, изменить или удалить пользователя</i>"
+    msg = "<i>Выберите группу</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=user)
+
+
+@disp.callback_query_handler(user_callback.filter(action="clients"))
+async def process_user_to_client(query: types.CallbackQuery):
+    msg = "<i>Вы можете добавить, изменить или удалить клиента</i>"
+
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=client)
+
+
+@disp.callback_query_handler(user_callback.filter(action="masters"))
+async def process_user_to_master(query: types.CallbackQuery):
+    msg = "<i>Вы можете добавить, изменить или удалить мастера</i>"
+
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=master)

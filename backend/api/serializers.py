@@ -1,19 +1,17 @@
-
-from datetime import datetime
 from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField)
-from services.models import Visit, Client
+from services.models import Visit, Client, Master
 from django.contrib.auth import get_user_model
 
 
 class UserSerializer(ModelSerializer):
 
-    # detail_url = HyperlinkedIdentityField(view_name='users-detail')
+    detail_url = HyperlinkedIdentityField(view_name='clients-detail')
 
     class Meta:
         model = get_user_model()
         queryset = model.objects.all()
         fields = ('id', 'phone_number', 'telegram_id', 'email', 'password',
-                  'last_name', 'first_name', 'is_client', 'is_superuser',)
+                  'last_name', 'first_name', 'is_client', 'is_superuser', 'detail_url')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -44,8 +42,16 @@ class ThinVisitSerializer(ModelSerializer):
 
 
 class ClientsSerializer(ModelSerializer):
-    detail_url = HyperlinkedIdentityField(view_name='clients-detail', )
+    detail_url = HyperlinkedIdentityField(view_name='clients-detail')
 
     class Meta:
         model = Client
-        fields = ('user', 'client_type', 'detail_url')
+        fields = ('user', 'user_type', 'detail_url')
+
+
+class MastersSerializer(ModelSerializer):
+    detail_url = HyperlinkedIdentityField(view_name='masters-detail')
+
+    class Meta:
+        model = Master
+        fields = ('user', 'user_type', 'detail_url')

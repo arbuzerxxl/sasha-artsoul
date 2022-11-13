@@ -1,10 +1,6 @@
-from django.shortcuts import render
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from services.models import Visit, Client
-from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer, ClientsSerializer
+from services.models import Visit, Client, Master
+from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer, ClientsSerializer, MastersSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsClient
@@ -48,6 +44,17 @@ class ClientViewSet(ModelViewSet):
     model = Client
     queryset = model.objects.none()
     serializer_class = ClientsSerializer
+    permission_classes = (IsAdminUser, )
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return self.model.objects.all()
+
+
+class MasterViewSet(ModelViewSet):
+    model = Master
+    queryset = model.objects.none()
+    serializer_class = MastersSerializer
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
