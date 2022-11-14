@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
 from emoji import emojize
 from telebot.loader import disp
-from telebot.keyboards.default import yes_no_keyboard, continue_cancel_keyboard
+from telebot.keyboards.reply_keyboards import yes_no_keyboard, continue_cancel_keyboard
 
 
 class RegistrationUser(StatesGroup):

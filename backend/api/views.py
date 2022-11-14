@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from services.models import Visit, Client, Master
-from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer, ClientsSerializer, MastersSerializer
+from services.models import Visit, Client, Master, Calendar
+from api.serializers import (VisitSerializer, UserSerializer, ThinVisitSerializer,
+                             ClientsSerializer, MastersSerializer, CalendarSerializer)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsClient
@@ -62,5 +63,18 @@ class MasterViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.data.get('user', None):
             return self.model.objects.filter(user=self.request.data['user'])
+        else:
+            return self.model.objects.all()
+
+
+class CalendarViewSet(ModelViewSet):
+    model = Calendar
+    queryset = model.objects.none()
+    serializer_class = CalendarSerializer
+    permission_classes = (IsAdminUser, )
+
+    def get_queryset(self):
+        if self.request.data.get('date_time', None):
+            return self.model.objects.filter(date_time=self.request.data['date_time'])
         else:
             return self.model.objects.all()

@@ -181,7 +181,6 @@ DATETIME_INPUT_FORMATS = ["%d-%m-%Y %H:%M", ]
 # REST settings
 REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%d-%m-%Y %H:%M",
-    'DATETIME_INPUT_FORMATS': ["%d-%m-%Y %H:%M", ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',

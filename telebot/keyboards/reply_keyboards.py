@@ -24,3 +24,8 @@ master_status_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     one_time_keyboard=True
 ).add(KeyboardButton('Топ-мастер')).add(KeyboardButton('Обычный мастер')).add(KeyboardButton('Ученик')).add(KeyboardButton('Отмена'))
+
+calendar_time_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(KeyboardButton('10:00')).add(KeyboardButton('12:00')).add(KeyboardButton('15:00')).add(KeyboardButton('17:00')).add(KeyboardButton('Свое'))

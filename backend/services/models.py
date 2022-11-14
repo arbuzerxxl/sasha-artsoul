@@ -58,7 +58,8 @@ class Master(models.Model):
 class Calendar(models.Model):
 
     date_time = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера', verbose_name='Мастер')
+    master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера',
+                               verbose_name='Мастер', to_field='user_id')
     is_free = models.BooleanField(default=True, editable=False, verbose_name='Запись свободна')
 
     class Meta:

@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from telebot.loader import disp, bot
 from telebot.keyboards.callbacks import user_callback
 from handlers.admin.search_user import SearchUser
-from telebot.keyboards.default import continue_cancel_keyboard
+from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
 
 
 class DeleteUser(StatesGroup):

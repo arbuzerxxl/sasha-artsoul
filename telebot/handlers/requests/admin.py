@@ -1,13 +1,14 @@
 import ujson
 import requests
 from aiogram import types
+from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton)
 from aiogram.dispatcher import FSMContext
 from telebot.settings import URL
 from telebot.handlers.requests.utils import authorization
 from telebot.logger import bot_logger
 from telebot.loader import disp
-from telebot.handlers.admin import search_user, create_user, edit_user, delete_user
-from telebot.keyboards.default import continue_cancel_keyboard
+from telebot.handlers.admin import search_user, create_user, edit_user, delete_user, schedule
+from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
 
 API_FORM_KEYS = {
     'Имя': 'first_name',
@@ -228,3 +229,110 @@ async def process_request_delete_user(message: types.Message, state: FSMContext)
         msg = f"<code>Что-то пошло не так! Ошибка: [{response.status_code}]</code>"
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
         bot_logger.debug(f"[!] Пользователь не может быть удален. ID: {user_id}. Телефон: {user_phone_number}. Ошибка запроса: {response.status_code}")
+
+
+@disp.message_handler(state=schedule.Schedule.set_master)
+async def process_set_master_schedule(message: types.Message, state: FSMContext):
+    """Изменяет расписание на основе API
+       (создает/удаляет доступные для записи даты)."""
+
+    bot_logger.info(f"[?] Обработка события: {message}")
+
+    token = authorization()
+
+    url = URL + "api/masters/"
+
+    headers = {'Content-Type': 'application/json', 'Authorization': token}
+
+    async with state.proxy() as state_data:
+
+        state_data.setdefault("time", message.text)
+
+        response = requests.request("GET", url, headers=headers, data=None)
+        if response.status_code == 200 and response.content:
+            response_data = ujson.loads(response.content)
+            masters_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+            bot_logger.debug(f"Create response: {response_data}")
+            for master in response_data:
+                master_full_name = f"{master['user']['last_name']} {master['user']['first_name']}"
+                state_data[master_full_name] = master['user']['phone_number']
+                masters_keyboard.add(KeyboardButton(master_full_name))
+
+            msg = f"<i>Выберите мастера</i>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=masters_keyboard)
+            await schedule.Schedule.create_request.set()
+        else:
+            state.finish()
+            msg = f"<code>Ошибка: [{response.status_code}]</code>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(state=schedule.Schedule.create_request)
+async def process_create_schedule(message: types.Message, state: FSMContext):
+    """Создает запись из расписания на основе API"""
+
+    bot_logger.info(f"[?] Обработка события: {message}")
+
+    token = authorization()
+
+    url = URL + "api/calendar/"
+
+    headers = {'Content-Type': 'application/json', 'Authorization': token}
+
+    async with state.proxy() as state_data:
+
+        data = {"date_time": state_data["date"] + " " + state_data["time"], "master": state_data[message.text]}
+
+        payload = ujson.dumps(data)
+        response = requests.request("POST", url, headers=headers, data=payload)
+        if response.status_code == 201 and response.content:
+            response_data = ujson.loads(response.content)
+            msg = f"<i>Запись <b>[{response_data['date_time']}] [{state_data[message.text]}]</b> создана в расписании</i>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+            await state.finish()
+        else:
+            msg = f"<code>Ошибка: [{response.status_code}]</code>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(state=schedule.Schedule.delete_request)
+async def process_delete_schedule(message: types.Message, state: FSMContext):
+    """Удаляет запись из расписания на основе API"""
+
+    bot_logger.info(f"[?] Обработка события: {message}")
+
+    token = authorization()
+
+    url = URL + "api/calendar/"
+
+    headers = {'Content-Type': 'application/json', 'Authorization': token}
+
+    async with state.proxy() as state_data:
+
+        state_data.setdefault("time", message.text)
+
+        data = {"date_time": state_data["date"] + " " + state_data["time"]}
+
+        payload = ujson.dumps(data)
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code == 200 and response.content:
+            response_data = ujson.loads(response.content)
+            if not response_data:
+                msg = f"<i>Запись <b>[{data['date_time']}]</b> не найдена в расписании</i>"
+                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+                await state.finish()
+            else:
+                msg = f"<i>Запись <b>[{data['date_time']}]</b> найдена в расписании</i>"
+                url = response_data[0]['detail_url']
+                response = requests.request("DELETE", url, headers=headers, data=None)
+                if response.status_code == 204:
+                    msg = f"<i>Запись <b>[{data['date_time']}]</b> успешно удалена из расписания!</i>"
+                    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+                    bot_logger.debug(f"[+] Запись <b>[{data['date_time']}]</b> успешно удалена из расписания.")
+                else:
+                    msg = f"<code>Что-то пошло не так! Ошибка: [{response.status_code}]</code>"
+                    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+                    bot_logger.debug(f"[!] Запись <b>[{data['date_time']}]</b> не может быть удалена из расписания. Ошибка запроса: {response.status_code}")
+        else:
+            msg = f"<code>Ошибка при вводе данных. Запрос отклонен: [{response.status_code}]</code>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)

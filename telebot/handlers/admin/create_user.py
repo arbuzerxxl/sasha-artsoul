@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
 from telebot.keyboards.callbacks import client_callback, master_callback
-from telebot.keyboards.default import continue_cancel_keyboard
+from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
 
 
 class CreateUser(StatesGroup):
