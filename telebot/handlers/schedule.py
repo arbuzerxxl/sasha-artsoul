@@ -3,15 +3,13 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import (State, StatesGroup)
-# from aiogram_calendar import (simple_cal_callback, SimpleCalendar, dialog_cal_callback, DialogCalendar)
-from telebot.loader import disp, bot
+from aiogram_calendar import (simple_cal_callback, SimpleCalendar, dialog_cal_callback, DialogCalendar)
+from telebot.loader import disp
 from telebot.logger import bot_logger
 from telebot.settings import URL
 from telebot.handlers.utils import authorization
 from telebot.keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_master, search_user, menu
-
-from telebot.keyboards.simple_calendar import SimpleCalendar
+from telebot.keyboards.inline_keyboards import search_master
 
 
 class Schedule(StatesGroup):
@@ -29,7 +27,6 @@ async def process_set_date_schedule_from_simple_calendar(callback_query: types.C
         async with state.proxy() as state_data:
             state_data['date'] = date.strftime("%Y-%m-%d")
             await Schedule.set_time.set()
-            bot_logger.debug(f"[!] {callback_query}")
             await callback_query.message.answer(
                 f'Вы выбрали: {date.strftime("%d/%m/%Y")}',
                 reply_markup=calendar_time_keyboard)
@@ -64,11 +61,13 @@ async def process_set_time_schedule(message: types.Message, state: FSMContext):
         async with state.proxy() as state_data:
             state_data['time'] = message.text
             msg = f"<i>Вы выбрали время <b>{message.text}</b></i>"
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_master)
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
 
 
 @disp.message_handler(state=Schedule.set_master)
 async def process_set_master_schedule(message: types.Message, state: FSMContext):
+
+    await Schedule.create_request.set()
 
     async with state.proxy() as state_data:
         state_data.setdefault('time', message.text)

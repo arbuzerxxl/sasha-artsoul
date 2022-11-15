@@ -21,6 +21,8 @@ class CreateUser(StatesGroup):
 @disp.callback_query_handler(client_callback.filter(action="create"))
 async def process_create_client(query: types.CallbackQuery, state: FSMContext):
 
+    await query.message.delete_reply_markup()
+
     await CreateUser.set_data.set()
     async with state.proxy() as state_data:
         state_data['is_client'] = True
@@ -32,6 +34,8 @@ async def process_create_client(query: types.CallbackQuery, state: FSMContext):
 
 @disp.callback_query_handler(master_callback.filter(action="create"))
 async def process_create_master(query: types.CallbackQuery, state: FSMContext):
+
+    await query.message.delete_reply_markup()
 
     await CreateUser.set_data.set()
 

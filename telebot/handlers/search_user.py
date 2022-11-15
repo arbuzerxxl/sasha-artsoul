@@ -11,21 +11,11 @@ from telebot.settings import URL
 from telebot.handlers.utils import authorization
 
 
-@disp.callback_query_handler(user_callback.filter(action="search"))
+@disp.callback_query_handler(user_callback.filter(action="search"), state='*')
 async def process_search_user(query: types.CallbackQuery, state: FSMContext):
     """Поиск пользователя в БД на основе API."""
 
     await query.message.delete_reply_markup()
-
-    async with state.proxy() as state_data:
-        if state_data['method'] == 'edit_user':
-            await edit_user.EditUser.select_change.set()
-        elif state_data['method'] == 'delete_user':
-            await delete_user.DeleteUser.approve_deletion.set()
-        else:
-            state.finish()
-            msg = "<code>Необходимо, чтобы для поиска был задан метод, который его запустил. Операция прекращена</code>"
-            await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
     bot_logger.info(f"[?] Обработка события: {query}")
 

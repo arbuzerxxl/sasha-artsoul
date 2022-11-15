@@ -29,6 +29,10 @@ class EditUser(StatesGroup):
 @disp.callback_query_handler(user_callback.filter(action="edit"))
 async def process_edit_user(query: types.CallbackQuery, state: FSMContext):
 
+    await query.message.delete_reply_markup()
+
+    await EditUser.select_change.set()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'edit_user'
     msg = "<i>Вы хотите изменить пользователя, верно?</i>"
@@ -39,6 +43,10 @@ async def process_edit_user(query: types.CallbackQuery, state: FSMContext):
 @disp.callback_query_handler(client_callback.filter(action="edit"))
 async def process_edit_client(query: types.CallbackQuery, state: FSMContext):
 
+    await query.message.delete_reply_markup()
+
+    await EditUser.select_change.set()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'edit_client'
     msg = "<i>Вы хотите изменить клиента, верно?</i>"
@@ -48,6 +56,10 @@ async def process_edit_client(query: types.CallbackQuery, state: FSMContext):
 
 @disp.callback_query_handler(master_callback.filter(action="edit"))
 async def process_edit_master(query: types.CallbackQuery, state: FSMContext):
+
+    await query.message.delete_reply_markup()
+
+    await EditUser.select_change.set()
 
     async with state.proxy() as state_data:
         state_data['method'] = 'edit_master'
@@ -131,6 +143,7 @@ async def process_request_check_and_change_status_user(message: types.Message, s
         else:
             url = URL + "api/masters/"
         data = {'user': state_data['phone_number']}
+        full_name = state_data['full_name']
 
     await state.finish()
 
@@ -145,7 +158,7 @@ async def process_request_check_and_change_status_user(message: types.Message, s
     if response.status_code == 200 and response.content:
         response_data = ujson.loads(response.content)
         data['user_type'] = message.text
-        msg = f"<i>Статус пользователя {data['user']} изменен на <b>{data['user_type']}</b></i>"
+        msg = f"<i>Статус пользователя <b>{full_name}</b> изменен на <b>{data['user_type']}</b></i>"
 
         if not response_data:
             response = requests.request("POST", url, headers=headers, data=payload)
@@ -156,7 +169,7 @@ async def process_request_check_and_change_status_user(message: types.Message, s
         if response.status_code == 200 and response.content:
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
         else:
-            msg = f"<code>Невозможно сменить статус для пользователя {data['user']}! Ошибка: [{response.status_code}]</code>"
+            msg = f"<code>Невозможно сменить статус для пользователя <b>{full_name}</b>! Ошибка: [{response.status_code}]</code>"
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
     else:
         msg = f"<code>Ошибка при вводе данных. Запрос отклонен: [{response.status_code}]</code>"

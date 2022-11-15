@@ -20,6 +20,8 @@ async def process_delete_user(query: types.CallbackQuery, state: FSMContext):
 
     await query.message.delete_reply_markup()
 
+    await DeleteUser.approve_deletion.set()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'delete_user'
     msg = "<i>Вы хотите удалить пользователя, верно?</i>"
@@ -32,6 +34,8 @@ async def process_delete_master(query: types.CallbackQuery, state: FSMContext):
 
     await query.message.delete_reply_markup()
 
+    await DeleteUser.approve_deletion.set()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'delete_master'
     msg = "<i>Вы хотите удалить мастера, верно?</i>"
@@ -43,6 +47,8 @@ async def process_delete_master(query: types.CallbackQuery, state: FSMContext):
 async def process_delete_client(query: types.CallbackQuery, state: FSMContext):
 
     await query.message.delete_reply_markup()
+
+    await DeleteUser.approve_deletion.set()
 
     async with state.proxy() as state_data:
         state_data['method'] = 'delete_client'

@@ -11,23 +11,11 @@ from telebot.settings import URL
 from telebot.handlers.utils import authorization
 
 
-@disp.callback_query_handler(master_callback.filter(action="search"))
+@disp.callback_query_handler(master_callback.filter(action="search"), state="*")
 async def process_search_master(query: types.CallbackQuery, state: FSMContext):
     """Поиск мастера в БД на основе API."""
 
     await query.message.delete_reply_markup()
-
-    async with state.proxy() as state_data:
-        if state_data['method'] == 'edit_master':
-            await edit_user.EditUser.select_change.set()
-        elif state_data['method'] == 'delete_master':
-            await delete_user.DeleteUser.approve_deletion.set()
-        elif state_data['method'] == 'create_schedule':
-            await schedule.Schedule.create_request.set()
-        else:
-            state.finish()
-            msg = "<code>Необходимо, чтобы для поиска был задан метод, который его запустил. Операция прекращена</code>"
-            await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
     bot_logger.info(f"[?] Обработка события: {query}")
 
@@ -35,7 +23,7 @@ async def process_search_master(query: types.CallbackQuery, state: FSMContext):
 
     url = URL + "api/users/"
     headers = {'Content-Type': 'application/json', 'Authorization': token}
-    data = {"is_client": False}
+    data = {"is_client": "False"}
     payload = ujson.dumps(data)
     response = requests.request("GET", url, headers=headers, data=payload)
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}].")
@@ -51,7 +39,7 @@ async def process_search_master(query: types.CallbackQuery, state: FSMContext):
             async with state.proxy() as state_data:
                 state_data[user_full_name] = user  # FIXME: слабое место, все пользователи помещаются в оперативную память, надо создать общий буфер при старте
             users_keyboard.add(KeyboardButton(user_full_name))
-        msg = f"<i>Выберите пользователя</i>"
+        msg = f"<i>Выберите мастера</i>"
         await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=users_keyboard)
     else:
         await state.finish()
