@@ -9,17 +9,27 @@ user = InlineKeyboardMarkup()
 user.add(InlineKeyboardButton('Клиенты', callback_data="users:clients"))
 user.add(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
 
+search_user = InlineKeyboardMarkup()
+search_user.add(InlineKeyboardButton('Продолжить', callback_data="users:search"))
+search_user.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+search_master = InlineKeyboardMarkup()
+search_master.add(InlineKeyboardButton('Продолжить', callback_data="masters:search"))
+search_master.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+search_client = InlineKeyboardMarkup()
+search_client.add(InlineKeyboardButton('Продолжить', callback_data="clients:search"))
+search_client.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 client = InlineKeyboardMarkup()
 client.add(InlineKeyboardButton('Добавить клиента', callback_data="clients:create"))
-client.add(InlineKeyboardButton('Изменить клиента', callback_data="users:edit"))
-client.add(InlineKeyboardButton('Удалить клиента', callback_data="users:delete"))
+client.add(InlineKeyboardButton('Изменить клиента', callback_data="clients:edit"))
+client.add(InlineKeyboardButton('Удалить клиента', callback_data="clients:delete"))
 
 master = InlineKeyboardMarkup()
 master.add(InlineKeyboardButton('Добавить мастера', callback_data="masters:create"))
-master.add(InlineKeyboardButton('Изменить мастера', callback_data="users:edit"))
-master.add(InlineKeyboardButton('Удалить мастера', callback_data="users:delete"))
-
+master.add(InlineKeyboardButton('Изменить мастера', callback_data="masters:edit"))
+master.add(InlineKeyboardButton('Удалить мастера', callback_data="masters:delete"))
 
 schedule = InlineKeyboardMarkup()
 schedule.add(InlineKeyboardButton('Добавить в расписание', callback_data="schedule:create"))

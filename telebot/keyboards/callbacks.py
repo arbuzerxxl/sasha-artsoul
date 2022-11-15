@@ -13,3 +13,7 @@ calendar_callback = CallbackData("calendars", "action")
 schedule_callback = CallbackData("schedule", "action")
 
 visit_callback = CallbackData("visits", "action")
+
+cancel_callback = CallbackData("cancel", "action")
+
+calendar_callback = CallbackData('simple_calendar', 'act', 'year', 'month', 'day')

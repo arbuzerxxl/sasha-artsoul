@@ -5,8 +5,8 @@ from aiogram_calendar import SimpleCalendar, DialogCalendar
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.filters import IsAdminFilter
-from telebot.keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule
-from telebot.keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback
+from telebot.keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user
+from telebot.keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
 
 
 @disp.message_handler(state='*', commands='cancel')
@@ -20,6 +20,18 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
     await state.finish()
     await message.answer(text='Вы отменили ввод данных. Операция прекращена.')
+
+
+@disp.callback_query_handler(cancel_callback.filter(action="cancel"), state='*')
+async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
+
+    current_state = await state.get_state()
+
+    if current_state is None:
+        return
+
+    await state.finish()
+    await query.message.answer(text='Вы отменили ввод данных. Операция прекращена.')
 
 
 @disp.message_handler(commands=["hello"])
@@ -42,6 +54,12 @@ async def start_handler(event: types.Message):
         f"Привет, {event.from_user.get_mention(as_html=True)} ?!",
         parse_mode=types.ParseMode.HTML,
     )
+
+
+@disp.message_handler(IsAdminFilter(), commands=['search_user'])
+async def process_search_user_command(message: types.Message):
+    await message.answer("Поиск пользователей",
+                         reply_markup=search_user)
 
 
 # @disp.message_handler(content_types=types.ContentType.ANY)
@@ -102,7 +120,7 @@ async def process_admin_to_calendar(query: types.CallbackQuery):
 async def process_schedule_create(query: types.CallbackQuery, state: FSMContext):
     await query.message.delete_reply_markup()
     async with state.proxy() as state_data:
-        state_data['method'] = 'create'
+        state_data['method'] = 'create_schedule'
         msg = "<i>Выберите календарь для назначения даты</i>"
 
         await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
@@ -113,7 +131,7 @@ async def process_schedule_create(query: types.CallbackQuery, state: FSMContext)
 async def process_schedule_delete(query: types.CallbackQuery, state: FSMContext):
     await query.message.delete_reply_markup()
     async with state.proxy() as state_data:
-        state_data['method'] = 'delete'
+        state_data['method'] = 'delete_schedule'
         msg = "<i>Выберите календарь для назначения даты</i>"
 
         await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,

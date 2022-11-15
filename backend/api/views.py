@@ -16,6 +16,8 @@ class UserViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.data.get('phone_number', None):
             return self.model.objects.filter(phone_number=self.request.data['phone_number'])
+        elif self.request.data.get('is_client', None):
+            return self.model.objects.filter(is_client=self.request.data['is_client'])
         else:
             return self.model.objects.all()
 

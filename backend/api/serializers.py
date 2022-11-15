@@ -55,7 +55,7 @@ class MastersSerializer(ModelSerializer):
     class Meta:
         model = Master
         fields = ('user', 'user_type', 'detail_url')
-        depth = 1
+        # depth = 1
 
 
 class CalendarSerializer(ModelSerializer):
