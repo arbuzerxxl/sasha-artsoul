@@ -48,11 +48,7 @@ async def process_set_date_schedule_from_dialog_calendar(callback_query: types.C
 @disp.message_handler(state=Schedule.set_time)
 async def process_set_time_schedule(message: types.Message, state: FSMContext):
 
-    async with state.proxy() as state_data:
-        if state_data["method"] == "create_schedule":
-            await Schedule.set_master.set()
-        elif state_data["method"] == "delete_schedule":
-            await Schedule.delete_request.set()
+    await Schedule.set_master.set()
 
     if message.text == "Свое":
         msg = "<i>Введите время в формате HH:MM, например: 14:35</i>"
@@ -119,15 +115,17 @@ async def process_delete_schedule(message: types.Message, state: FSMContext):
 
     token = authentication()
 
-    url = URL + "api/calendar/"
-
     headers = {'Content-Type': 'application/json', 'Authorization': token}
 
     async with state.proxy() as state_data:
 
+        url = state_data['detail_url']  # TODO: Не работает, надо выводить списком, а не выбирать с помощью календаря
+
         state_data.setdefault("time", message.text)
 
-        data = {"date_time": state_data["date"] + " " + state_data["time"]}
+        state_data['phone_number'] = state_data[message.text]['phone_number']
+
+        data = {"date_time": state_data["date"] + " " + state_data["time"], "master": state_data['phone_number']}
 
         payload = ujson.dumps(data)
         response = requests.request("GET", url, headers=headers, data=payload)

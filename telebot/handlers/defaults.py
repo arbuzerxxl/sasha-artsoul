@@ -5,7 +5,7 @@ from aiogram_calendar import SimpleCalendar, DialogCalendar
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.filters import IsAdminFilter
-from telebot.keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user
+from telebot.keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user, search_schedule
 from telebot.keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
 
 
@@ -131,24 +131,10 @@ async def process_schedule_create(query: types.CallbackQuery, state: FSMContext)
 
     await query.message.delete_reply_markup()
 
-    async with state.proxy() as state_data:
-        state_data['method'] = 'create_schedule'
-        msg = "<i>Выберите календарь для назначения даты</i>"
+    msg = "<i>Выберите календарь для назначения даты</i>"
 
-        await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
-                               reply_markup=calendar)
-
-
-@disp.callback_query_handler(schedule_callback.filter(action="delete"))
-async def process_schedule_delete(query: types.CallbackQuery, state: FSMContext):
-    await query.message.delete_reply_markup()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'delete_schedule'
-        msg = "<i>Выберите календарь для назначения даты</i>"
-
-        await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
-                               reply_markup=calendar)
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
+                           reply_markup=calendar)
 
 
 @disp.callback_query_handler(calendar_callback.filter(action="navigation"))
@@ -173,8 +159,8 @@ async def process_dialog_calendar(query: types.CallbackQuery):
 
 
 @disp.callback_query_handler(admin_callback.filter(action="visits"))
-async def process_admin_to_calendar(query: types.CallbackQuery):
+async def process_admin_to_visits(query: types.CallbackQuery):
 
-    msg = "<i></i>"
+    msg = "<i>Вы можете добавить, изменить или удалить запись</i>"
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=calendar)
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=visit)

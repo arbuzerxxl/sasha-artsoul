@@ -24,7 +24,7 @@ class UserViewSet(ModelViewSet):
 
 class VisitViewSet(ModelViewSet):
     model = Visit
-    queryset = model.objects.none()
+    queryset = model.objects.all()
     serializer_class = VisitSerializer
     permission_classes = (IsClient, )
 
@@ -38,9 +38,6 @@ class VisitViewSet(ModelViewSet):
             return self.model.objects.all()
         if not self.request.user.is_anonymous:
             return self.model.objects.filter(client__user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(client__user=self.request.user)
 
 
 class ClientViewSet(ModelViewSet):
@@ -76,7 +73,9 @@ class CalendarViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
-        if self.request.data.get('date_time', None):
-            return self.model.objects.filter(date_time=self.request.data['date_time'])
+        if self.request.data.get('date_time', None) and self.request.data.get('master', None):
+            return self.model.objects.filter(date_time=self.request.data['date_time'], master=self.request.data['master'])
+        elif self.request.data.get('is_free', None):
+            return self.model.objects.filter(is_free=self.request.data['is_free'])
         else:
             return self.model.objects.all()

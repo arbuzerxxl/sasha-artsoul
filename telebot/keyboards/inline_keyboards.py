@@ -13,6 +13,10 @@ search_user = InlineKeyboardMarkup(row_width=2)
 search_user.insert(InlineKeyboardButton('Продолжить', callback_data="users:search"))
 search_user.insert(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
+search_schedule = InlineKeyboardMarkup(row_width=2)
+search_schedule.insert(InlineKeyboardButton('Продолжить', callback_data="schedule:search"))
+search_schedule.insert(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
 client = InlineKeyboardMarkup()
 client.add(InlineKeyboardButton('Добавить клиента', callback_data="clients:create"))
 client.add(InlineKeyboardButton('Изменить клиента', callback_data="clients:edit"))
