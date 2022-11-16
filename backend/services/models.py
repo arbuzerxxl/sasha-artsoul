@@ -58,7 +58,8 @@ class Master(models.Model):
 class Calendar(models.Model):
 
     date_time = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера', verbose_name='Мастер')
+    master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера',
+                               verbose_name='Мастер', to_field='user_id')
     is_free = models.BooleanField(default=True, editable=False, verbose_name='Запись свободна')
 
     class Meta:
@@ -118,8 +119,8 @@ class Visit(models.Model):
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
 
-    visit = models.OneToOneField('Calendar', on_delete=models.SET_NULL, unique=True, null=True, limit_choices_to={'is_free': True},
-                                 help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
+    calendar = models.OneToOneField('Calendar', on_delete=models.CASCADE, unique=True, null=True, limit_choices_to={'is_free': True},
+                                    help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
     status = models.CharField(max_length=30, choices=Statuses.choices, help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
@@ -136,25 +137,25 @@ class Visit(models.Model):
     class Meta():
         verbose_name = "Запись"
         verbose_name_plural = "Записи"
-        constraints = [models.UniqueConstraint(fields=['visit', 'status'], name='unique_status'),
-                       models.UniqueConstraint(fields=['visit', 'client'], name='unique_client'),
+        constraints = [models.UniqueConstraint(fields=['calendar', 'status'], name='unique_status'),
+                       models.UniqueConstraint(fields=['calendar', 'client'], name='unique_client'),
                        ]
 
     def clean(self):
         super().clean()
         #  проверка ограничения: не более 3 записей в месяц для "обычного" клиента
         if Visit.objects.filter(
-            client=self.client, visit__date_time__month=self.visit.date_time.month) and Visit.objects.filter(
-                client=self.client, visit__date_time__month=self.visit.date_time.month).count() >= 3:
+            client=self.client, calendar__date_time__month=self.calendar.date_time.month) and Visit.objects.filter(
+                client=self.client, calendar__date_time__month=self.calendar.date_time.month).count() >= 3:
             if self.client.client_type != 'Постоянный клиент':
                 raise ValidationError('Данный пользователь не может иметь больше 3 записей в месяц')
 
     def __str__(self) -> str:
-        return f'Запись: {self.visit} Клиент: [{self.client}] Стоимость: [{self.service}]'
+        return f'Запись: {self.calendar} Клиент: [{self.client}] Стоимость: [{self.service}]'
 
     def delete(self, *args, **kwargs):
-        self.visit.is_free = True
-        self.visit.save()
+        self.calendar.is_free = True
+        self.calendar.save()
         super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
@@ -170,6 +171,6 @@ class Visit(models.Model):
             self.total = 0
         self.tax = self.total * Decimal('0.04')
 
-        self.visit.is_free = False
-        self.visit.save()
+        self.calendar.is_free = False
+        self.calendar.save()
         super(Visit, self).save(*args, **kwargs)

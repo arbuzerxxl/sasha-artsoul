@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from services.models import Visit, Client, Master
-from api.serializers import VisitSerializer, UserSerializer, ThinVisitSerializer, ClientsSerializer, MastersSerializer
+from services.models import Visit, Client, Master, Calendar
+from api.serializers import (VisitSerializer, UserSerializer, ThinVisitSerializer,
+                             ClientsSerializer, MastersSerializer, CalendarSerializer)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsClient
@@ -15,13 +16,15 @@ class UserViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.data.get('phone_number', None):
             return self.model.objects.filter(phone_number=self.request.data['phone_number'])
+        elif self.request.data.get('is_client', None):
+            return self.model.objects.filter(is_client=self.request.data['is_client'])
         else:
             return self.model.objects.all()
 
 
 class VisitViewSet(ModelViewSet):
     model = Visit
-    queryset = model.objects.none()
+    queryset = model.objects.all()
     serializer_class = VisitSerializer
     permission_classes = (IsClient, )
 
@@ -35,9 +38,6 @@ class VisitViewSet(ModelViewSet):
             return self.model.objects.all()
         if not self.request.user.is_anonymous:
             return self.model.objects.filter(client__user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(client__user=self.request.user)
 
 
 class ClientViewSet(ModelViewSet):
@@ -62,5 +62,20 @@ class MasterViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.data.get('user', None):
             return self.model.objects.filter(user=self.request.data['user'])
+        else:
+            return self.model.objects.all()
+
+
+class CalendarViewSet(ModelViewSet):
+    model = Calendar
+    queryset = model.objects.none()
+    serializer_class = CalendarSerializer
+    permission_classes = (IsAdminUser, )
+
+    def get_queryset(self):
+        if self.request.data.get('date_time', None) and self.request.data.get('master', None):
+            return self.model.objects.filter(date_time=self.request.data['date_time'], master=self.request.data['master'])
+        elif self.request.data.get('is_free', None):
+            return self.model.objects.filter(is_free=self.request.data['is_free'])
         else:
             return self.model.objects.all()

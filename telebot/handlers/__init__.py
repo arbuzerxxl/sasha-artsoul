@@ -1,6 +1,12 @@
 from .defaults import disp
-from .admin import disp
-from .user import disp
-from .requests import disp
+from .registration import disp
+from .create_user import disp
+from .edit_user import disp
+from .delete_user import disp
+from .search_user import disp
+from .create_visit import disp
+from .create_schedule import disp
+from .delete_schedule import disp
+from .search_schedule import disp
 
 __all__ = ["disp"]

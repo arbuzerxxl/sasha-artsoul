@@ -8,4 +8,10 @@ client_callback = CallbackData("clients", "action")
 
 master_callback = CallbackData("masters", "action")
 
-visit_callback = CallbackData("visit", "action")
+calendar_callback = CallbackData("calendars", "action")
+
+schedule_callback = CallbackData("schedule", "action")
+
+visit_callback = CallbackData("visits", "action")
+
+cancel_callback = CallbackData("cancel", "action")

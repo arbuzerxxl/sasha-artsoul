@@ -1,5 +1,5 @@
-from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField)
-from services.models import Visit, Client, Master
+from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField, CharField)
+from services.models import Visit, Client, Master, Calendar
 from django.contrib.auth import get_user_model
 
 
@@ -38,7 +38,7 @@ class ThinVisitSerializer(ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ('visit', 'client', 'service', 'detail_url',)
+        fields = ('calendar', 'client', 'service', 'detail_url',)
 
 
 class ClientsSerializer(ModelSerializer):
@@ -55,3 +55,12 @@ class MastersSerializer(ModelSerializer):
     class Meta:
         model = Master
         fields = ('user', 'user_type', 'detail_url')
+
+
+class CalendarSerializer(ModelSerializer):
+    detail_url = HyperlinkedIdentityField(view_name='calendar-detail')
+    master_full_name = PrimaryKeyRelatedField(read_only=True, source='master.user.__str__')
+
+    class Meta:
+        model = Calendar
+        fields = ('id', 'master', 'master_full_name', 'date_time', 'is_free', 'detail_url')

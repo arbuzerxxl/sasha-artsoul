@@ -19,14 +19,14 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
-    list_display = ('visit', 'status', 'service', 'client', 'total', 'review', 'rating')
-    list_filter = ('visit', 'status', 'client')
+    list_display = ('calendar', 'status', 'service', 'client', 'total', 'review', 'rating')
+    list_filter = ('calendar', 'status', 'client')
 
     def delete_queryset(self, request, queryset):
 
         for item in queryset:
-            item.visit.is_free = True
-            item.visit.save()
+            item.calendar.is_free = True
+            item.calendar.save()
 
         queryset.delete()
 

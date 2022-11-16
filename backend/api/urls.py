@@ -9,6 +9,7 @@ router.register('visits', VisitViewSet, basename='visits')
 router.register('users', UserViewSet, basename='users')
 router.register('clients', ClientViewSet, basename='clients')
 router.register('masters', MasterViewSet, basename='masters')
+router.register('calendar', CalendarViewSet, basename='calendar')
 urlpatterns = router.urls
 
 urlpatterns += [path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

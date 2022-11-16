@@ -13,7 +13,7 @@ async def sender_to_admin(msg: types.Message):
             await bot.send_message(text=msg, chat_id=int(admin))
 
 
-def authorization():
+def authentication():
     """Производит аутентификацию бота на основе jwt."""
 
     try:
