@@ -6,10 +6,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.settings import URL
-from telebot.handlers.utils import authorization
+from telebot.handlers.utils import authentication
 from telebot.keyboards.callbacks import user_callback, client_callback, master_callback
 from telebot.keyboards.reply_keyboards import user_form_keyboard, client_status_keyboard, master_status_keyboard
-from telebot.keyboards.inline_keyboards import search_user, search_client, search_master
+from telebot.keyboards.inline_keyboards import search_user
 
 API_FORM_KEYS = {
     'Имя': 'first_name',
@@ -26,50 +26,58 @@ class EditUser(StatesGroup):
     request_check_and_change_status = State()
 
 
-@disp.callback_query_handler(user_callback.filter(action="edit"))
-async def process_edit_user(query: types.CallbackQuery, state: FSMContext):
+async def process_edit_set(msg: str, query: types.CallbackQuery) -> types.Message:
+    """
+    Удаляет предыдущую inline клавиатуру,
+    назначает состояние EditUser в state_storage и
+    перенаправляет в функцию поиска пользователей
+    в БД: handlers/search_user.
+    """
 
     await query.message.delete_reply_markup()
 
     await EditUser.select_change.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'edit_user'
-    msg = "<i>Вы хотите изменить пользователя, верно?</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_user)
 
 
+@disp.callback_query_handler(user_callback.filter(action="edit"))
+async def process_edit_user(query: types.CallbackQuery) -> types.Message:
+    """
+    Принимает запрос пользователя (users:edit).
+    Чат-команда быстрого выхода из состояния - /cancel.
+    """
+
+    msg = "<i>Вы хотите изменить пользователя, верно?</i>"
+
+    await process_edit_set(msg=msg, query=query)
+
+
 @disp.callback_query_handler(client_callback.filter(action="edit"))
-async def process_edit_client(query: types.CallbackQuery, state: FSMContext):
+async def process_edit_client(query: types.CallbackQuery) -> types.Message:
+    """То же, что и process_edit_user, но принимает запроспользователя (clients:edit)."""
 
-    await query.message.delete_reply_markup()
-
-    await EditUser.select_change.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'edit_client'
     msg = "<i>Вы хотите изменить клиента, верно?</i>"
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_client)
+    await process_edit_set(msg=msg, query=query)
 
 
 @disp.callback_query_handler(master_callback.filter(action="edit"))
-async def process_edit_master(query: types.CallbackQuery, state: FSMContext):
+async def process_edit_master(query: types.CallbackQuery) -> types.Message:
+    """То же, что и process_edit_user, но принимает запроспользователя (masters:edit)."""
 
-    await query.message.delete_reply_markup()
-
-    await EditUser.select_change.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'edit_master'
     msg = "<i>Вы хотите изменить мастера, верно?</i>"
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_master)
+    await process_edit_set(msg=msg, query=query)
 
 
 @disp.message_handler(state=EditUser.select_change)
-async def process_select_change_edit_user(message: types.Message, state: FSMContext):
+async def process_select_change_edit_user(message: types.Message, state: FSMContext) -> types.Message:
+    """
+    Получает в state {'Петров Петр': {user_response_data}},
+    сохраняет необходимые переменные в state для выбранного пользователя,
+    выводит доступные ключи полей для их дальнейшего изменения.
+    """
 
     async with state.proxy() as state_data:
         state_data['phone_number'] = state_data[message.text]['phone_number']
@@ -78,12 +86,21 @@ async def process_select_change_edit_user(message: types.Message, state: FSMCont
         state_data['is_client'] = state_data[message.text]['is_client']
 
     await EditUser.set_data.set()
+
     msg = "<i>Что будем менять?</i>"
+
     await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=user_form_keyboard)
 
 
 @disp.message_handler(state=EditUser.set_data)
-async def process_set_data_edit_user(message: types.Message, state: FSMContext):
+async def process_set_data_edit_user(message: types.Message, state: FSMContext) -> types.Message:
+    """
+    Если в качестве ключа выбрано поле "Статус",
+    возвращает список доступных статусов и назначает состояние смены статуса.
+
+    В ином случае, сохраняет ключ изменяемого поля в state и
+    предлагает ввести новое значение для него.
+    """
 
     if message.text == "Статус":
         await EditUser.request_check_and_change_status.set()
@@ -102,8 +119,8 @@ async def process_set_data_edit_user(message: types.Message, state: FSMContext):
 
 
 @disp.message_handler(state=EditUser.request_user_data)
-async def process_request_edit_user(message: types.Message, state: FSMContext):
-    """Изменение пользователя в БД на основе API."""
+async def process_request_edit_user(message: types.Message, state: FSMContext) -> types.Message:
+    """Изменяет значение переданного в state поля посредством API"""
 
     bot_logger.info(f"[?] Обработка события: {message}")
 
@@ -112,7 +129,7 @@ async def process_request_edit_user(message: types.Message, state: FSMContext):
         url = state_data['detail_url']
         data = {"phone_number": state_data["phone_number"], API_FORM_KEYS.get(state_data.pop('user_data_key')): message.text}
 
-    token = authorization()
+    token = authentication()
 
     headers = {'Content-Type': 'application/json', 'Authorization': token}
 
@@ -131,8 +148,11 @@ async def process_request_edit_user(message: types.Message, state: FSMContext):
 
 
 @disp.message_handler(state=EditUser.request_check_and_change_status)
-async def process_request_check_and_change_status_user(message: types.Message, state: FSMContext):
-    """Проверка статуса пользователя (клиент/мастер/none) в БД на основе API."""
+async def process_request_check_and_change_status_user(message: types.Message, state: FSMContext) -> types.Message:
+    """
+    Производит запрос на наличие в таблице Clients или Masters в БД выбранного пользователя и
+    в случае успешного запроса изменяет 'Статус' посредством API
+    """
 
     bot_logger.info(f"[?] Обработка события: {message}")
 
@@ -147,7 +167,7 @@ async def process_request_check_and_change_status_user(message: types.Message, s
 
     await state.finish()
 
-    token = authorization()
+    token = authentication()
 
     headers = {'Content-Type': 'application/json', 'Authorization': token}
 

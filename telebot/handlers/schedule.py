@@ -7,9 +7,9 @@ from aiogram_calendar import (simple_cal_callback, SimpleCalendar, dialog_cal_ca
 from telebot.loader import disp
 from telebot.logger import bot_logger
 from telebot.settings import URL
-from telebot.handlers.utils import authorization
+from telebot.handlers.utils import authentication
 from telebot.keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_master
+from telebot.keyboards.inline_keyboards import search_user
 
 
 class Schedule(StatesGroup):
@@ -74,7 +74,7 @@ async def process_set_master_schedule(message: types.Message, state: FSMContext)
 
     msg = f"<i>Необходимо назначить мастера</i>"
 
-    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_master)
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_user)
 
 
 @disp.message_handler(state=Schedule.create_request)
@@ -89,7 +89,7 @@ async def process_create_schedule(message: types.Message, state: FSMContext):
         state_data['full_name'] = message.text
         state_data['detail_url'] = state_data[message.text]['detail_url']
 
-    token = authorization()
+    token = authentication()
 
     url = URL + "api/calendar/"
 
@@ -117,7 +117,7 @@ async def process_delete_schedule(message: types.Message, state: FSMContext):
 
     bot_logger.info(f"[?] Обработка события: {message}")
 
-    token = authorization()
+    token = authentication()
 
     url = URL + "api/calendar/"
 

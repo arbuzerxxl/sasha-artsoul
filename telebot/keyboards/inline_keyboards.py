@@ -5,21 +5,13 @@ menu.add(InlineKeyboardButton('Пользователи', callback_data="menu:us
 menu.add(InlineKeyboardButton('Записи', callback_data="menu:visits"))
 menu.add(InlineKeyboardButton('Расписание', callback_data="menu:schedule"))
 
-user = InlineKeyboardMarkup()
-user.add(InlineKeyboardButton('Клиенты', callback_data="users:clients"))
-user.add(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
+user = InlineKeyboardMarkup(row_width=2)
+user.insert(InlineKeyboardButton('Клиенты', callback_data="users:clients"))
+user.insert(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
 
-search_user = InlineKeyboardMarkup()
-search_user.add(InlineKeyboardButton('Продолжить', callback_data="users:search"))
-search_user.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
-
-search_master = InlineKeyboardMarkup()
-search_master.add(InlineKeyboardButton('Продолжить', callback_data="masters:search"))
-search_master.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
-
-search_client = InlineKeyboardMarkup()
-search_client.add(InlineKeyboardButton('Продолжить', callback_data="clients:search"))
-search_client.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+search_user = InlineKeyboardMarkup(row_width=2)
+search_user.insert(InlineKeyboardButton('Продолжить', callback_data="users:search"))
+search_user.insert(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 client = InlineKeyboardMarkup()
 client.add(InlineKeyboardButton('Добавить клиента', callback_data="clients:create"))
@@ -31,13 +23,13 @@ master.add(InlineKeyboardButton('Добавить мастера', callback_data
 master.add(InlineKeyboardButton('Изменить мастера', callback_data="masters:edit"))
 master.add(InlineKeyboardButton('Удалить мастера', callback_data="masters:delete"))
 
-schedule = InlineKeyboardMarkup()
-schedule.add(InlineKeyboardButton('Добавить в расписание', callback_data="schedule:create"))
-schedule.add(InlineKeyboardButton('Удалить из расписания', callback_data="schedule:delete"))
+schedule = InlineKeyboardMarkup(row_width=2)
+schedule.insert(InlineKeyboardButton('Добавить в расписание', callback_data="schedule:create"))
+schedule.insert(InlineKeyboardButton('Удалить из расписания', callback_data="schedule:delete"))
 
-calendar = InlineKeyboardMarkup()
-calendar.add(InlineKeyboardButton('Обычный', callback_data="calendars:navigation"))
-calendar.add(InlineKeyboardButton('Детальный', callback_data="calendars:dialog"))
+calendar = InlineKeyboardMarkup(row_width=2)
+calendar.insert(InlineKeyboardButton('Обычный', callback_data="calendars:navigation"))
+calendar.insert(InlineKeyboardButton('Детальный', callback_data="calendars:dialog"))
 
 visit = InlineKeyboardMarkup()
 visit.add(InlineKeyboardButton('Добавить запись', callback_data="visits:create"))

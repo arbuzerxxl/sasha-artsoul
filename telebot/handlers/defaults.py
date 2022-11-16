@@ -58,6 +58,7 @@ async def start_handler(event: types.Message):
 
 @disp.message_handler(IsAdminFilter(), commands=['search_user'])
 async def process_search_user_command(message: types.Message):
+
     await message.answer("Поиск пользователей",
                          reply_markup=search_user)
 
@@ -75,18 +76,22 @@ async def process_search_user_command(message: types.Message):
 
 @disp.message_handler(commands=['rm'])
 async def process_rm_command(message: types.Message):
+
     await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
 
 
 @disp.message_handler(IsAdminFilter(), commands=['admin'])
 async def process_admin_command(message: types.Message):
+
     await message.answer("Здесь отображаются только админ-команды",
                          reply_markup=menu)
 
 
 @disp.callback_query_handler(admin_callback.filter(action="users"))
 async def process_admin_to_user(query: types.CallbackQuery):
+
     await query.message.delete_reply_markup()
+
     msg = "<i>Выберите группу</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=user)
@@ -94,7 +99,9 @@ async def process_admin_to_user(query: types.CallbackQuery):
 
 @disp.callback_query_handler(user_callback.filter(action="clients"))
 async def process_user_to_client(query: types.CallbackQuery):
+    
     await query.message.delete_reply_markup()
+    
     msg = "<i>Вы можете добавить, изменить или удалить клиента</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=client)
@@ -102,6 +109,7 @@ async def process_user_to_client(query: types.CallbackQuery):
 
 @disp.callback_query_handler(user_callback.filter(action="masters"))
 async def process_user_to_master(query: types.CallbackQuery):
+
     await query.message.delete_reply_markup()
     msg = "<i>Вы можете добавить, изменить или удалить мастера</i>"
 
@@ -110,7 +118,9 @@ async def process_user_to_master(query: types.CallbackQuery):
 
 @disp.callback_query_handler(admin_callback.filter(action="schedule"))
 async def process_admin_to_calendar(query: types.CallbackQuery):
+
     await query.message.delete_reply_markup()
+
     msg = "<i>Выберите действие</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=schedule)
@@ -118,7 +128,9 @@ async def process_admin_to_calendar(query: types.CallbackQuery):
 
 @disp.callback_query_handler(schedule_callback.filter(action="create"))
 async def process_schedule_create(query: types.CallbackQuery, state: FSMContext):
+
     await query.message.delete_reply_markup()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'create_schedule'
         msg = "<i>Выберите календарь для назначения даты</i>"
@@ -130,6 +142,7 @@ async def process_schedule_create(query: types.CallbackQuery, state: FSMContext)
 @disp.callback_query_handler(schedule_callback.filter(action="delete"))
 async def process_schedule_delete(query: types.CallbackQuery, state: FSMContext):
     await query.message.delete_reply_markup()
+
     async with state.proxy() as state_data:
         state_data['method'] = 'delete_schedule'
         msg = "<i>Выберите календарь для назначения даты</i>"
@@ -140,6 +153,7 @@ async def process_schedule_delete(query: types.CallbackQuery, state: FSMContext)
 
 @disp.callback_query_handler(calendar_callback.filter(action="navigation"))
 async def process_navigation_calendar(query: types.CallbackQuery):
+
     await query.message.delete_reply_markup()
     msg = "<i>Выберите дату</i>"
 
@@ -149,7 +163,9 @@ async def process_navigation_calendar(query: types.CallbackQuery):
 
 @disp.callback_query_handler(calendar_callback.filter(action="dialog"))
 async def process_dialog_calendar(query: types.CallbackQuery):
+
     await query.message.delete_reply_markup()
+
     msg = "<i>Выберите дату</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
@@ -158,6 +174,7 @@ async def process_dialog_calendar(query: types.CallbackQuery):
 
 @disp.callback_query_handler(admin_callback.filter(action="visits"))
 async def process_admin_to_calendar(query: types.CallbackQuery):
+
     msg = "<i></i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=calendar)

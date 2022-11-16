@@ -1,14 +1,14 @@
 import ujson
 import requests
+import re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton)
-from telebot.handlers import delete_user, edit_user
-from telebot.loader import disp, bot
+from telebot.loader import disp
 from telebot.logger import bot_logger
 from telebot.keyboards.callbacks import user_callback
 from telebot.settings import URL
-from telebot.handlers.utils import authorization
+from telebot.handlers.utils import authentication
 
 
 @disp.callback_query_handler(user_callback.filter(action="search"), state='*')
@@ -19,12 +19,19 @@ async def process_search_user(query: types.CallbackQuery, state: FSMContext):
 
     bot_logger.info(f"[?] Обработка события: {query}")
 
-    token = authorization()
+    token = authentication()
 
     url = URL + "api/users/"
     headers = {'Content-Type': 'application/json', 'Authorization': token}
 
-    response = requests.request("GET", url, headers=headers, data=None)
+    if re.search(r"клиент", query.message.html_text, ) or re.search(r"клиент", query.message.md_text):
+        data = {"is_client": "True"}
+    elif re.search(r"мастер", query.message.html_text) or re.search(r"мастер", query.message.md_text):
+        data = {"is_client": "False"}
+    else:
+        data = None
+    payload = ujson.dumps(data)
+    response = requests.request("GET", url, headers=headers, data=payload)
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}].")
     if response.status_code == 200 and response.content:
         response_data = ujson.loads(response.content)

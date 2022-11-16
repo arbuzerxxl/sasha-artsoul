@@ -8,7 +8,7 @@ from emoji import emojize
 from telebot.loader import disp
 from telebot.logger import bot_logger
 from telebot.settings import URL
-from telebot.handlers.utils import authorization, sender_to_admin
+from telebot.handlers.utils import authentication, sender_to_admin
 from telebot.keyboards.reply_keyboards import yes_no_keyboard, continue_cancel_keyboard
 
 
@@ -123,7 +123,7 @@ async def process_request_registration_user(message: types.Message, state: FSMCo
     async with state.proxy() as data:
         bot_logger.info(f"[?] Обработка события: {message}")
 
-        token = authorization()
+        token = authentication()
 
         url = URL + "api/users/"
         headers = {'Content-Type': 'application/json', 'Authorization': token}

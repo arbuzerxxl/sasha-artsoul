@@ -4,10 +4,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
-from telebot.handlers.utils import authorization
+from telebot.handlers.utils import authentication
 from telebot.keyboards.callbacks import user_callback, master_callback, client_callback
 from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_user, search_master, search_client
+from telebot.keyboards.inline_keyboards import search_user
 
 
 class DeleteUser(StatesGroup):
@@ -15,50 +15,58 @@ class DeleteUser(StatesGroup):
     request_delete = State()
 
 
-@disp.callback_query_handler(user_callback.filter(action="delete"))
-async def process_delete_user(query: types.CallbackQuery, state: FSMContext):
+async def process_delete_set(msg: str, query: types.CallbackQuery) -> types.Message:
+    """
+    Удаляет предыдущую inline клавиатуру,
+    назначает состояние DeleteUser в state_storage и
+    перенаправляет в функцию поиска пользователей
+    в БД: handlers/search_user.
+    """
 
     await query.message.delete_reply_markup()
 
     await DeleteUser.approve_deletion.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'delete_user'
-    msg = "<i>Вы хотите удалить пользователя, верно?</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_user)
 
 
+@disp.callback_query_handler(user_callback.filter(action="delete"))
+async def process_delete_user(query: types.CallbackQuery) -> types.Message:
+    """
+    Принимает запрос пользователя (users:delete).
+    Чат-команда быстрого выхода из состояния - /cancel.
+    """
+
+    msg = "<i>Вы хотите удалить пользователя, верно?</i>"
+
+    await process_delete_set(msg=msg, query=query)
+
+
 @disp.callback_query_handler(master_callback.filter(action="delete"))
-async def process_delete_master(query: types.CallbackQuery, state: FSMContext):
+async def process_delete_master(query: types.CallbackQuery) -> types.Message:
+    """То же, что и process_delete_user, но принимает запроспользователя (masters:delete)."""
 
-    await query.message.delete_reply_markup()
-
-    await DeleteUser.approve_deletion.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'delete_master'
     msg = "<i>Вы хотите удалить мастера, верно?</i>"
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_master)
+    await process_delete_set(msg=msg, query=query)
 
 
 @disp.callback_query_handler(client_callback.filter(action="delete"))
-async def process_delete_client(query: types.CallbackQuery, state: FSMContext):
+async def process_delete_client(query: types.CallbackQuery) -> types.Message:
+    """То же, что и process_delete_user, но принимает запроспользователя (clients:delete)."""
 
-    await query.message.delete_reply_markup()
-
-    await DeleteUser.approve_deletion.set()
-
-    async with state.proxy() as state_data:
-        state_data['method'] = 'delete_client'
     msg = "<i>Вы хотите удалить клиента, верно?</i>"
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_client)
+    await process_delete_set(msg=msg, query=query)
 
 
 @disp.message_handler(state=DeleteUser.approve_deletion)
-async def process_approve_deletion_user(message: types.Message, state: FSMContext):
+async def process_approve_deletion_user(message: types.Message, state: FSMContext) -> types.Message:
+    """
+    Получает в state {'Петров Петр': {user_response_data}},
+    сохраняет необходимые переменные в state для выбранного пользователя,
+    выводит сообщение о подтверждении удаления выбранного пользователя.
+    """
 
     await DeleteUser.next()
 
@@ -72,8 +80,8 @@ async def process_approve_deletion_user(message: types.Message, state: FSMContex
 
 
 @disp.message_handler(state=DeleteUser.request_delete)
-async def process_request_delete_user(message: types.Message, state: FSMContext):
-    """Отправка запроса на удаление пользователя в БД на основе API."""
+async def process_request_delete_user(message: types.Message, state: FSMContext) -> types.Message:
+    """Отправляет запрос на удаление пользователя в БД на основе API."""
 
     async with state.proxy() as state_data:
         user_full_name = state_data.pop('full_name')
@@ -84,7 +92,7 @@ async def process_request_delete_user(message: types.Message, state: FSMContext)
 
     bot_logger.info(f"[?] Обработка события: {message}")
 
-    token = authorization()
+    token = authentication()
 
     headers = {'Content-Type': 'application/json', 'Authorization': token}
     response = requests.request("DELETE", url, headers=headers, data=None)

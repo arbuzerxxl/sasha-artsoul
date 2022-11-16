@@ -7,7 +7,7 @@ from aiogram.utils.markdown import text
 from telebot.loader import disp, bot
 from telebot.logger import bot_logger
 from telebot.settings import URL
-from telebot.handlers.utils import authorization
+from telebot.handlers.utils import authentication
 from telebot.keyboards.callbacks import client_callback, master_callback
 from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
 
@@ -91,7 +91,7 @@ async def process_request_create_user(message: types.Message, state: FSMContext)
 
     await state.finish()
 
-    token = authorization()
+    token = authentication()
     url = URL + "api/users/"
     headers = {'Content-Type': 'application/json', 'Authorization': token}
     payload = ujson.dumps(state_data)
