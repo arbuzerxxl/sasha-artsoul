@@ -99,9 +99,9 @@ async def process_admin_to_user(query: types.CallbackQuery):
 
 @disp.callback_query_handler(user_callback.filter(action="clients"))
 async def process_user_to_client(query: types.CallbackQuery):
-    
+
     await query.message.delete_reply_markup()
-    
+
     msg = "<i>Вы можете добавить, изменить или удалить клиента</i>"
 
     await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=client)
@@ -160,6 +160,8 @@ async def process_dialog_calendar(query: types.CallbackQuery):
 
 @disp.callback_query_handler(admin_callback.filter(action="visits"))
 async def process_admin_to_visits(query: types.CallbackQuery):
+
+    await query.message.delete_reply_markup()
 
     msg = "<i>Вы можете добавить, изменить или удалить запись</i>"
 

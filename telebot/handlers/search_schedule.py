@@ -26,7 +26,7 @@ async def process_search_free_records(query: types.CallbackQuery, state: FSMCont
     if re.search(r"удалить", query.message.html_text, ) or re.search(r"удалить", query.message.md_text):
         payload = None
     else:
-        data = {"is_free": "False"}
+        data = {"is_free": "True"}
         payload = ujson.dumps(data)
     response = requests.request("GET", url, headers=headers, data=payload)
     bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}].")
