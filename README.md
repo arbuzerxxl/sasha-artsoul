@@ -36,3 +36,14 @@
 3. Docker creates first superuser. If you want to change this data, you need to set: **/backend/entrypoint.sh**.
 
 # 𝙳𝚎𝚖𝚘
+## Create user
+![Artsoul scheme](https://github.com/arbuzerxxl/images/raw/main/create_user_gif.gif)
+
+## Create master
+![Artsoul scheme](https://github.com/arbuzerxxl/images/raw/main/create_master_gif.gif)
+
+## Create visit in schedule
+![Artsoul scheme](https://github.com/arbuzerxxl/images/raw/main/create_schedule_gif.gif)
+
+## Create main visit
+![Artsoul scheme](https://github.com/arbuzerxxl/images/raw/main/create_visit_gif.gif)
