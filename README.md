@@ -1,66 +1,38 @@
-# sasha-artsoul
-It's web-site for nail business
+# 𝙳𝚎𝚜𝚌𝚛𝚒𝚙𝚝𝚒𝚘𝚗
 
-start docker compose
+### This is bot-helper for nail business as a small CRM.
+- Backend: Django
+- Database: PostgreSQL
+- Frontend: aiogram
+- API: DRF
+- Docker: ✅️
+- .env: ✅️
 
-<!-- from /deploy -->
-docker-compose --compatibility -f docker-compose.yml up -d --force-recreate --build
+### Bot can CRUD all models within API. Bot-auth is done using JWT.
+#### *In this version the bot supports only russian language in chat.*
 
-with env
+# 𝙵𝚎𝚊𝚝𝚞𝚛𝚎𝚜
 
-<!-- OLD DOCKER -->
-docker-compose --env-file .env --compatibility -p artsoul -f ./deploy/docker-compose.local.old.yml up --build --remove-orphans -d
+### This tool solves the next problems:
+- self-registration of new clients and appointment
+- financial accounting (total, tax, etc) due to automatic calculation in the database
+- accounting for Customers and Employees (Masters)
+- introduction of flexible schedule
+- smart notification of the Customer
+- introduction of all file-log events
 
-<!-- NEW DOCKER -->
-docker-compose --env-file .env --compatibility -p artsoul -f ./deploy/docker-compose.local.yml up --build --remove-orphans -d
+# 𝙼𝚘𝚍𝚎𝚕𝚜 𝚜𝚌𝚑𝚎𝚖𝚎
 
-<!-- install python libs -->
-python3 -m pip install -r requirements.txt
+![Artsoul scheme](https://github.com/arbuzerxxl/images/raw/main/artsoul.png)
 
-<!-- create migrations -->
-python3 manage.py makemigrations
+# 𝙵𝚎𝚊𝚝𝚞𝚛𝚎𝚜
 
-<!-- migrate to DB -->
-python3 manage.py migrate
+# 𝙸𝚗𝚜𝚝𝚊𝚕𝚕𝚊𝚝𝚒𝚘𝚗
+1. Fill **.env.example** with your own data and remove suffix **.example**.
 
-<!-- run nextjs -->
-npm run dev
+2. Into dir: **deploy/**
 
-<!-- run django -->
-python3 manage.py runserver
+        docker-compose up -d --build
+3. Docker creates first superuser. If you want to change this data, you need to set: **/backend/entrypoint.sh**.
 
-<!-- create ADMIN -->
-python3 manage.py createsuperuser
-
-
-<!-- GIT usefull commands -->
-git commit -am "..."  # take all files to commit
-
-git branch -av  # show all local and deleted branches 
-
-git branch  # show local branches
-
-git branch new_branch  # create new branch
-
-git checkout any_branch  # turn off to branch
-
-git fetch  # get last update from git without merge
-
-git pull --rebase  # # get last update from git and rebase
-
-git checkout main
-git merge develop  # merge all changes from DEVELOP to MAIN
-
-git log --oneline  # show all commits
-
-<!-- delete db -->
-sudo rm _tmp -r
-
-<!-- DOCKER -->
-docker rm $(docker ps -qa)
-docker rmi $(docker images -q)
-docker-compose up -d --build  # from dir deploy/
-docker network rm <network_id>
-
-<!-- cmd -->
-nano ~/.bashrc
+# 𝙳𝚎𝚖𝚘

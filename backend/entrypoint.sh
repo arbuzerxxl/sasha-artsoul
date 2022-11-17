@@ -14,7 +14,7 @@ fi
 python manage.py flush --no-input
 python manage.py migrate
 echo "from accounts.models import User; import os; User.objects.create_superuser(
-  os.environ.get('DJ_ADMIN_USERNAME'), 'kss@kss.com', os.environ.get('DJ_ADMIN_PASSWORD'), last_name='Курбатов', first_name='Сергей')" | python manage.py shell
+  os.environ.get('DJ_ADMIN_USERNAME'), '', os.environ.get('DJ_ADMIN_PASSWORD'), last_name='ADMIN', first_name='ADMIN')" | python manage.py shell
 
 exec "$@"
 
