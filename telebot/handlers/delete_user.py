@@ -2,12 +2,12 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from telebot.loader import disp, bot
-from telebot.logger import bot_logger
-from telebot.handlers.utils import authentication
-from telebot.keyboards.callbacks import user_callback, master_callback, client_callback
-from telebot.keyboards.reply_keyboards import continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_user
+from loader import disp, bot
+from logger import bot_logger
+from handlers.utils import authentication
+from keyboards.callbacks import user_callback, master_callback, client_callback
+from keyboards.reply_keyboards import continue_cancel_keyboard
+from keyboards.inline_keyboards import search_user
 
 
 class DeleteUser(StatesGroup):

@@ -3,13 +3,13 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import (State, StatesGroup)
-from telebot.loader import disp, bot
-from telebot.logger import bot_logger
-from telebot.settings import URL
-from telebot.handlers.utils import authentication
-from telebot.keyboards.callbacks import schedule_callback
-from telebot.keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_schedule
+from loader import disp, bot
+from logger import bot_logger
+from settings import URL
+from handlers.utils import authentication
+from keyboards.callbacks import schedule_callback
+from keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
+from keyboards.inline_keyboards import search_schedule
 
 
 class ScheduleDelete(StatesGroup):

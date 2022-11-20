@@ -3,13 +3,13 @@ import requests
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from telebot.loader import disp, bot
-from telebot.logger import bot_logger
-from telebot.settings import URL
-from telebot.handlers.utils import authentication
-from telebot.keyboards.callbacks import user_callback, client_callback, master_callback
-from telebot.keyboards.reply_keyboards import user_form_keyboard, client_status_keyboard, master_status_keyboard
-from telebot.keyboards.inline_keyboards import search_user
+from loader import disp, bot
+from logger import bot_logger
+from settings import URL
+from handlers.utils import authentication
+from keyboards.callbacks import user_callback, client_callback, master_callback
+from keyboards.reply_keyboards import user_form_keyboard, client_status_keyboard, master_status_keyboard
+from keyboards.inline_keyboards import search_user
 
 API_FORM_KEYS = {
     'Имя': 'first_name',

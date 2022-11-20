@@ -4,12 +4,12 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import (State, StatesGroup)
 from aiogram_calendar import (simple_cal_callback, SimpleCalendar, dialog_cal_callback, DialogCalendar)
-from telebot.loader import disp
-from telebot.logger import bot_logger
-from telebot.settings import URL
-from telebot.handlers.utils import authentication
-from telebot.keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
-from telebot.keyboards.inline_keyboards import search_user
+from loader import disp
+from logger import bot_logger
+from settings import URL
+from handlers.utils import authentication
+from keyboards.reply_keyboards import calendar_time_keyboard, continue_cancel_keyboard
+from keyboards.inline_keyboards import search_user
 
 
 class Schedule(StatesGroup):

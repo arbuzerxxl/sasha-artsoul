@@ -4,13 +4,13 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
-from telebot.loader import disp, bot
-from telebot.logger import bot_logger
-from telebot.settings import URL
-from telebot.handlers.utils import authentication
-from telebot.keyboards.callbacks import visit_callback
-from telebot.keyboards.inline_keyboards import search_schedule, search_user
-from telebot.keyboards.reply_keyboards import statuses_keyboard, services_keyboard, discount_keyboard, continue_cancel_keyboard
+from loader import disp, bot
+from logger import bot_logger
+from settings import URL
+from handlers.utils import authentication
+from keyboards.callbacks import visit_callback
+from keyboards.inline_keyboards import search_schedule, search_user
+from keyboards.reply_keyboards import statuses_keyboard, services_keyboard, discount_keyboard, continue_cancel_keyboard
 
 
 class CreateVisit(StatesGroup):
