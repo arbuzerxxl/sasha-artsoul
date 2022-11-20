@@ -5,11 +5,11 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
 from emoji import emojize
-from telebot.loader import disp
-from telebot.logger import bot_logger
-from telebot.settings import URL
-from telebot.handlers.utils import authentication, sender_to_admin
-from telebot.keyboards.reply_keyboards import yes_no_keyboard, continue_cancel_keyboard
+from loader import disp
+from logger import bot_logger
+from settings import URL
+from handlers.utils import authentication, sender_to_admin
+from keyboards.reply_keyboards import yes_no_keyboard, continue_cancel_keyboard
 
 
 class RegistrationUser(StatesGroup):

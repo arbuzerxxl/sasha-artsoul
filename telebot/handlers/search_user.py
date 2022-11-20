@@ -4,11 +4,11 @@ import re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton)
-from telebot.loader import disp
-from telebot.logger import bot_logger
-from telebot.keyboards.callbacks import user_callback
-from telebot.settings import URL
-from telebot.handlers.utils import authentication
+from loader import disp
+from logger import bot_logger
+from keyboards.callbacks import user_callback
+from settings import URL
+from handlers.utils import authentication
 
 
 @disp.callback_query_handler(user_callback.filter(action="search"), state='*')

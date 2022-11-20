@@ -1,4 +1,4 @@
-from telebot.logger import bot_logger, configure_logging
+from logger import bot_logger, configure_logging
 
 
 async def on_startup(disp):

@@ -2,11 +2,11 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram_calendar import SimpleCalendar, DialogCalendar
-from telebot.loader import disp, bot
-from telebot.logger import bot_logger
-from telebot.filters import IsAdminFilter
-from telebot.keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user, search_schedule
-from telebot.keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
+from loader import disp, bot
+from logger import bot_logger
+from filters import IsAdminFilter
+from keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user, search_schedule
+from keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
 
 
 @disp.message_handler(state='*', commands='cancel')
