@@ -5,16 +5,16 @@ volumes:
 
 services:
 
-  telegram_bot:
-    container_name: telegram_bot
-    build: ../telebot/
-    restart: unless-stopped
-    env_file:
-      - ./../.env
-    depends_on:
-      - main
-    networks:
-      - localnet
+  # telegram_bot:
+  #   container_name: telegram_bot
+  #   build: ../telebot/
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ./../.env
+  #   depends_on:
+  #     - main
+  #   networks:
+  #     - localnet
 
   db:
     container_name: postgresql_db
@@ -35,7 +35,6 @@ services:
     container_name: artsoul_main
     build: ../backend/
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     expose:
@@ -48,17 +47,6 @@ services:
       - ./../.env
     networks:
       - localnet
-  
-  # nextjs_app:
-  #   container_name: nextjs
-  #   build: ../web-app/
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - localnet
-  #   depends_on:
-  #     - main
 
 networks:
   localnet:
