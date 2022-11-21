@@ -16,7 +16,7 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 echo "from accounts.models import User; import os; User.objects.create_superuser(
   os.environ.get('DJ_ADMIN_USERNAME'), '', os.environ.get('DJ_ADMIN_PASSWORD'), last_name='ADMIN', first_name='ADMIN')" | python manage.py shell
-gunicorn --forwarded-allow-ips=* --bind 0.0.0.0:8000 -w 2 main.wsgi:application
+gunicorn main.wsgi:application --bind 0.0.0.0:8000
 
 exec "$@"
 

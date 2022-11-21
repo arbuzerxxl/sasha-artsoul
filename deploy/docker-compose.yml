@@ -2,6 +2,7 @@ version: "3"
 
 volumes:
   postgres_volume:
+  static_volume:
 
 services:
 
@@ -12,9 +13,32 @@ services:
   #   env_file:
   #     - ./../.env
   #   depends_on:
-  #     - main
+  #     - web
   #   networks:
   #     - localnet
+  
+  # nginx:
+  #   image: nginx:1.19.8-alpine
+  #   depends_on:
+  #     - web
+  #   ports:
+  #     -  "8080:80"
+  #   volumes:
+  #     - static_data:/usr/src/app/static
+  #     - ./nginx-conf.d:/etc/nginx/conf.d
+
+  nginx:
+    build: ../nginx
+    ports:
+      - 1337:80
+    depends_on:
+      - web
+    volumes:
+      - static_volume:/usr/src/app/staticfiles
+    networks:
+        main:
+            aliases:
+                - web
 
   db:
     container_name: postgresql_db
@@ -27,29 +51,32 @@ services:
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     networks:
-      - localnet
+      main:
     ports:
       - "5433:5432"
 
-  main:
+  web:
     container_name: artsoul_main
     build: ../backend/
     restart: unless-stopped
     volumes:
-      - .:/code
+      - static_volume:/usr/src/app/staticfiles
     expose:
       - 8000
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     depends_on:
       - db
     env_file:
       - ./../.env
     networks:
-      - localnet
+        main:
+            aliases:
+                - web
 
 networks:
-  localnet:
+  main:
+  
 
 
 
