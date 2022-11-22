@@ -6,31 +6,21 @@ volumes:
 
 services:
 
-  # telegram_bot:
-  #   container_name: telegram_bot
-  #   build: ../telebot/
-  #   restart: unless-stopped
-  #   env_file:
-  #     - ./../.env
-  #   depends_on:
-  #     - web
-  #   networks:
-  #     - localnet
-  
-  # nginx:
-  #   image: nginx:1.19.8-alpine
-  #   depends_on:
-  #     - web
-  #   ports:
-  #     -  "8080:80"
-  #   volumes:
-  #     - static_data:/usr/src/app/static
-  #     - ./nginx-conf.d:/etc/nginx/conf.d
+  telegram_bot:
+    container_name: telegram_bot
+    build: ../telebot/
+    restart: unless-stopped
+    env_file:
+      - ./../.env
+    depends_on:
+      - web
+    networks:
+      main:
 
   nginx:
     build: ../nginx
     ports:
-      - 1337:80
+      - 80:80
     depends_on:
       - web
     volumes:
@@ -76,9 +66,3 @@ services:
 
 networks:
   main:
-  
-
-
-
-
-
