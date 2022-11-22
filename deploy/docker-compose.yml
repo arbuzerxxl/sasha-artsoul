@@ -3,6 +3,7 @@ version: "3"
 volumes:
   postgres_volume:
   static_volume:
+  backend:
 
 services:
 
@@ -21,10 +22,15 @@ services:
     build: ../nginx
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - web
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     volumes:
       - static_volume:/usr/src/app/staticfiles
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+      - backend:/usr/share/nginx/html
     networks:
         main:
             aliases:
@@ -51,6 +57,7 @@ services:
     restart: unless-stopped
     volumes:
       - static_volume:/usr/src/app/staticfiles
+      - backend:/usr/src/app
     expose:
       - 8000
     # ports:
@@ -63,6 +70,14 @@ services:
         main:
             aliases:
                 - web
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
   main:
