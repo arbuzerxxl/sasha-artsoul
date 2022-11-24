@@ -29,7 +29,10 @@ DEBUG = int(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
-CSRF_TRUSTED_ORIGINS = [os.environ.get("MY_HOST")]
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = ["https://sasha-artsoul.com", "https://*.sasha-artsoul.com"]  # set your DOMAIN
+else:
+    CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:1337"]
 
 # Application definition
 

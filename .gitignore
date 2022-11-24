@@ -145,3 +145,4 @@ telebot/tokens
 backend/static
 deploy/nginx-conf.d
 deploy/init-letsencrypt.sh
+nginx/nginx.conf
