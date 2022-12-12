@@ -9,6 +9,6 @@ USERNAME = os.environ.get('DJ_ADMIN_USERNAME')
 PASSWORD = os.environ.get('DJ_ADMIN_PASSWORD')
 
 if DEBUG:
-    URL = "http://localhost:8000/"
+    URL = "http://127.0.0.1:1337/"
 else:
     URL = os.environ.get("MY_HOST")

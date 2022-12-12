@@ -9,7 +9,7 @@ class MasterAdmin(admin.ModelAdmin):
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('user', 'user_type')
+    list_display = ('user', 'user_type', 'last_visit_manicure', 'last_visit_pedicure')
 
 
 @admin.register(Calendar)
@@ -21,6 +21,11 @@ class ClientAdmin(admin.ModelAdmin):
 class VisitAdmin(admin.ModelAdmin):
     list_display = ('calendar', 'status', 'service', 'client', 'total', 'review', 'rating')
     list_filter = ('calendar', 'status', 'client')
+
+    # def save_model(self, request, obj, form, change) -> None:
+    #     if obj.calendar is None:
+    #         obj.calendar = Visit.objects.get(id=obj.id).calendar
+    #     return super().save_model(request, obj, form, change)
 
     def delete_queryset(self, request, queryset):
 

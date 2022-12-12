@@ -11,7 +11,7 @@ then
     echo "PostgreSQL started"
 fi
 
-python manage.py flush --no-input
+# python manage.py flush --no-input
 python manage.py migrate
 python manage.py collectstatic --noinput
 echo "from accounts.models import User; import os; User.objects.create_superuser(

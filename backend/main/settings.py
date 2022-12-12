@@ -29,7 +29,10 @@ DEBUG = int(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
-CSRF_TRUSTED_ORIGINS = [os.environ.get("MY_HOST")]
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = ["https://sasha-artsoul.com", "https://*.sasha-artsoul.com"]  # set your DOMAIN
+else:
+    CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1"]
 
 # Application definition
 
@@ -158,9 +161,9 @@ LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
-USE_L10N = False  # влияет на разделитель чисел в HTML форме!
+USE_L10N = True  # влияет на разделитель чисел в HTML форме!
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
