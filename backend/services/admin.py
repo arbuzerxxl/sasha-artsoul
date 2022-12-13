@@ -19,13 +19,10 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
-    list_display = ('calendar', 'status', 'service', 'client', 'total', 'review', 'rating')
-    list_filter = ('calendar', 'status', 'client')
-
-    # def save_model(self, request, obj, form, change) -> None:
-    #     if obj.calendar is None:
-    #         obj.calendar = Visit.objects.get(id=obj.id).calendar
-    #     return super().save_model(request, obj, form, change)
+    list_display = ('calendar', 'status', 'service', 'client', 'extra_total', 'discount', 'total', 'review', 'rating')
+    list_filter = ('calendar__date_time', 'status', 'client')
+    search_fields = ('status', 'client__user__last_name',)
+    sortable_by = ('calendar', 'status',)
 
     def delete_queryset(self, request, queryset):
 

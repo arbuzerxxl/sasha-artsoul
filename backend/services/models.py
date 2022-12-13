@@ -116,19 +116,25 @@ class Visit(models.Model):
         __empty__ = 'Укажите оценку'
 
     class Discounts(Decimal, models.Choices):
-        FIRST_VISIT = '0.15', 'Первый визит'
+
+        FIRST_VISIT = Decimal('0.15'), 'Первый визит'
+        SIX_VISIT = '0.35', 'Шестой визит'
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
 
     calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, blank=True, limit_choices_to={'is_free': True},
                                     help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, choices=Statuses.choices, default='Предварительная запись', help_text='Необходимо указать.', verbose_name='Тип записи')
+    status = models.CharField(max_length=30, choices=Statuses.choices, default='Предварительная запись',
+                              help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
     client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.',
                                verbose_name='Клиент', null=True, blank=False, to_field='user_id')
     discount = models.DecimalField(max_digits=5, decimal_places=2, choices=Discounts.choices, default=None,
                                    help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
+    extra = models.CharField(max_length=255, null=True, blank=True, verbose_name='Доп. услуги')
+    extra_total = models.DecimalField(max_digits=6, decimal_places=2, default=None,
+                                      verbose_name='Стоимость доп. услуги', null=True, blank=True)
     total = models.DecimalField(max_digits=7, decimal_places=2, editable=False, verbose_name='Вывод по чеку')
     tax = models.DecimalField(max_digits=5, decimal_places=2, editable=False, verbose_name='Налог', null=True)
     review = models.CharField(max_length=250, help_text='Напишите ваш отзыв', verbose_name='Отзыв', null=True, blank=True)
@@ -167,10 +173,13 @@ class Visit(models.Model):
 
     def solveProfit(self):
 
-        self.service_price = self.SERVICE_PRICES[self.service]
+        if self.extra_total:
+            self.service_price = self.SERVICE_PRICES[self.service] + self.extra_total
+        else:
+            self.service_price = self.SERVICE_PRICES[self.service]
 
-        if self.isFirstVisit():
-            self.discount = self.Discounts.FIRST_VISIT
+        # if self.isFirstVisit():
+        #     self.discount = self.Discounts.FIRST_VISIT
 
         if not self.discount:
             self.total = self.service_price
@@ -209,20 +218,28 @@ class Visit(models.Model):
 
     def save(self, *args, **kwargs):
 
-        try:
-            prev_visit_data = Visit.objects.get(id=self.id)
-
-            if prev_visit_data.calendar.pk != self.calendar.pk:
-                prev_visit_data.calendar.is_free = True
-                prev_visit_data.calendar.save()
-        except Visit.DoesNotExist:
-            pass
-
-        if self.status == self.Statuses.SUCCESSFULLY:
+        # support old data
+        if self.client:
             self.change_visit_dates()
-        else:
-            self.solveProfit()
-            self.solveTax()
-            self.calendar.is_free = False
-            self.calendar.save()
+        self.solveProfit()
+        self.solveTax()
+        self.calendar.is_free = False
+        self.calendar.save()
+
+        # try:
+        #     prev_visit_data = Visit.objects.get(id=self.id)
+
+        #     if prev_visit_data.calendar.pk != self.calendar.pk:
+        #         prev_visit_data.calendar.is_free = True
+        #         prev_visit_data.calendar.save()
+        # except Visit.DoesNotExist:
+        #     pass
+
+        # if self.status == self.Statuses.SUCCESSFULLY:
+        #     self.change_visit_dates()
+        # else:
+        #     self.solveProfit()
+        #     self.solveTax()
+        #     self.calendar.is_free = False
+        #     self.calendar.save()
         super(Visit, self).save(*args, **kwargs)

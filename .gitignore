@@ -147,3 +147,5 @@ deploy/nginx-conf.d
 deploy/init-letsencrypt.sh
 deploy/_tmp
 nginx/nginx.conf
+old_data/
+utils/
