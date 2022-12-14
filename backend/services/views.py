@@ -1,7 +1,8 @@
 import ujson
+import calendar
 from datetime import datetime
 from decimal import Decimal, getcontext
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from .models import Visit, Master, Calendar, Client
@@ -32,13 +33,7 @@ def my_view(request):
 
 def index(request):
 
-    visits = None
-
-    if request.user.is_authenticated:
-        visits = Visit.objects.filter(client=request.user.phone_number)
-
-    return render(request, 'index.html',
-                  context={'visits': visits})
+    return render(request, 'index.html')
 
 
 #  add cookie example
@@ -50,7 +45,7 @@ def home(request):
     return response
 
 
-def create_calendar(request):
+def create_superuser(request):
 
     try:
         User.objects.create_superuser('89999999999',
@@ -85,7 +80,28 @@ def create_calendar(request):
     return HttpResponse("Суперпользователь создан")
 
 
-def add_users(request):
+def create_calendar(request):
+
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+
+    for day in range(1, calendar.monthrange(current_year, current_month)[1] + 1):
+        try:
+            if datetime(year=current_year, month=current_month, day=day).weekday() in [0, 1, 4, 5]:
+                for hour in [10, 12, 15, 17]:
+                    Calendar.objects.create(date_time=datetime(year=current_year,
+                                                               month=current_month,
+                                                               day=day,
+                                                               hour=hour,
+                                                               minute=0),
+                                            master=Master.objects.get(pk=1))
+        except IntegrityError:
+            pass
+
+    return redirect("index")
+
+
+def add_old_clients(request):
 
     with open('../old_data/clients.json', 'r', encoding='utf-8') as jsonf:
 
@@ -93,7 +109,7 @@ def add_users(request):
 
         for client in clients:
             try:
-                pw = None
+                pw = "".join(list(client.get('phone_number'))[-1:-6:-1])
                 user = User.objects.create(phone_number=client.get('phone_number'),
                                            last_name=client.get('last_name'),
                                            first_name=client.get('first_name'),
