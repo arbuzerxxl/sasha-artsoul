@@ -61,22 +61,6 @@ def create_superuser(request):
     except IntegrityError:
         pass
 
-    # current_year = datetime.now().year
-    # current_month = datetime.now().month
-
-    # for day in range(1, calendar.monthrange(current_year, current_month)[1] + 1):
-    #     try:
-    #         if datetime(year=current_year, month=current_month, day=day).weekday() in [0, 1, 4, 5]:
-    #             for hour in [10, 12, 15, 17]:
-    #                 Calendar.objects.create(date_time=datetime(year=current_year,
-    #                                                            month=current_month,
-    #                                                            day=day,
-    #                                                            hour=hour,
-    #                                                            minute=0),
-    #                                         master=Master.objects.get(pk=1))
-    #     except IntegrityError:
-    #         pass
-
     return HttpResponse("Суперпользователь создан")
 
 
@@ -109,7 +93,7 @@ def add_old_clients(request):
 
         for client in clients:
             try:
-                pw = "".join(list(client.get('phone_number'))[-1:-6:-1])
+                pw = None
                 user = User.objects.create(phone_number=client.get('phone_number'),
                                            last_name=client.get('last_name'),
                                            first_name=client.get('first_name'),

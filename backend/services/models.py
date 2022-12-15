@@ -126,13 +126,13 @@ class Visit(models.Model):
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
 
-    calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, blank=True, limit_choices_to={'is_free': True},
+    calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, db_index=True, blank=True, limit_choices_to={'is_free': True},
                                     help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, choices=Statuses.choices, default='Предварительная запись',
+    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices, default='Предварительная запись',
                               help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
-    client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.',
+    client = models.ForeignKey('Client', on_delete=models.SET_NULL, db_index=True, help_text='Необходимо указать.',
                                verbose_name='Клиент', null=True, blank=False, to_field='user_id')
     discount = models.DecimalField(max_digits=5, decimal_places=2, choices=Discounts.choices, default=None,
                                    help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
@@ -285,10 +285,9 @@ class Visit(models.Model):
 
         if self.status == self.Statuses.SUCCESSFULLY:
             self.change_visit_dates()
-        else:
-            self.solveProfit()
-            self.solveTax()
-            self.calendar.is_free = False
-            self.checkLongService()
-            self.calendar.save()
+        self.solveProfit()
+        self.solveTax()
+        self.calendar.is_free = False
+        self.checkLongService()
+        self.calendar.save()
         super(Visit, self).save(*args, **kwargs)

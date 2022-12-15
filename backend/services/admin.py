@@ -24,7 +24,7 @@ class CalendarAdmin(admin.ModelAdmin):
 class VisitAdmin(admin.ModelAdmin):
     list_display = ('calendar', 'status', 'service', 'client', 'extra_total', 'discount', 'total', 'review', 'rating')
     list_filter = ('calendar__date_time', 'status', 'client')
-    search_fields = ('status', 'client__user__last_name',)
+    search_fields = ('status', 'client__user__last_name', 'calendar__date_time__month')
     sortable_by = ('calendar', 'status',)
 
     def delete_queryset(self, request, queryset):
