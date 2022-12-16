@@ -1,5 +1,13 @@
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton)
 
+check_phone_number_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(
+    KeyboardButton('Отправить свой контакт', request_contact=True)
+)
+
+
 yes_no_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     one_time_keyboard=True
