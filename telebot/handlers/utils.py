@@ -4,15 +4,14 @@ import aiohttp
 from aiogram import types
 from auth import auth_with_token
 from logger import bot_logger
-from loader import bot, DEBUG
+from loader import bot
 
 
 async def sender_to_admin(msg: types.Message):
-    """Отправляет оповещения админам."""
+    """Отправляет оповещение админам."""
 
-    if not DEBUG:  # TODO: заменить debug
-        for admin in os.environ.get("TELEBOT_ADMINS").split(" "):
-            await bot.send_message(text=msg, chat_id=int(admin))
+    for admin in os.environ.get("TELEBOT_ID_ADMINS").split(" "):
+        await bot.send_message(text=msg, chat_id=int(admin))
 
 
 async def authentication():
@@ -26,6 +25,7 @@ async def authentication():
 
 
 async def make_request(method, url, data):
+    """Создает запрос к API сайта"""
 
     token = await authentication()
 

@@ -1,5 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+registration = InlineKeyboardMarkup()
+registration.add(InlineKeyboardButton('Зарегистрироваться', callback_data="menu:registration"))
+
 menu = InlineKeyboardMarkup()
 menu.add(InlineKeyboardButton('Пользователи', callback_data="menu:users"))
 menu.add(InlineKeyboardButton('Записи', callback_data="menu:visits"))

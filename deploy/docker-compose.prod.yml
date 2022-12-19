@@ -22,10 +22,8 @@ services:
     container_name: postgresql_db
     image: postgres:14-alpine
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=artsoul
-      - POSTGRES_PASSWORD=porosenok0211
-      - POSTGRES_DB=artsoul
+    env_file:
+      - ./../.env
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     networks:

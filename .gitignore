@@ -138,6 +138,7 @@ probe.*
 # databases
 *.sql
 
+#my ignores
 _tmp
 deploy/data/
 TODO
@@ -149,3 +150,4 @@ deploy/_tmp
 nginx/nginx.conf
 old_data/
 utils/
+telebot/static

@@ -24,6 +24,8 @@ class UserViewSet(ModelViewSet):
             return self.model.objects.filter(phone_number=self.request.data['phone_number'])
         elif self.request.data.get('is_client', None):
             return self.model.objects.filter(is_client=self.request.data['is_client'])
+        elif self.request.data.get('telegram_id', None):
+            return self.model.objects.filter(telegram_id=self.request.data['telegram_id'])
         else:
             return self.model.objects.all()
 
