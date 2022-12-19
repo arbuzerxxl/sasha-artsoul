@@ -7,7 +7,7 @@ class IsClient(BasePermission):
         return bool(request.method in SAFE_METHODS and request.user and request.user.is_authenticated or request.user.is_superuser)
 
     def has_object_permission(self, request, view, obj):
-
-        if obj.client.user == request.user and request.method in SAFE_METHODS:
-            return True
+        if hasattr(obj.client, 'user'):
+            if obj.client.user == request.user and request.method in SAFE_METHODS:
+                return True
         return request.user.is_superuser

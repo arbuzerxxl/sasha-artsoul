@@ -89,6 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(
         max_length=12,
         unique=True,
+        db_index=True,
         help_text="Обязательно. Максимально допустимое кол-во символов - 18. Цифры и символы '()', '+' и '_'.",
         validators=[PhoneNumberValidator()],
         error_messages={
@@ -99,6 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     telegram_id = models.IntegerField(
         unique=True,
+        db_index=True,
         error_messages={
             "unique": "Пользователь с таким Telegram ID уже существует."
         },
@@ -113,6 +115,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     last_name = models.CharField(
         _("last name"),
+        db_index=True,
         max_length=150,
         blank=False
     )
@@ -123,6 +126,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_staff = models.BooleanField(
         _("staff status"),
+        db_index=True,
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
     )

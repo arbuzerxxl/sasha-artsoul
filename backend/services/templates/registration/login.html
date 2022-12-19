@@ -12,7 +12,7 @@
     {% if user.is_authenticated %}
         <p>Вы не имеете доступ к этой странице. Войдите в систему с другими параметрами</p>
     {% else %}
-        <p>Войдите в систему, чтобы увидеть эту страницу.</p>
+        <p></p>
     {% endif %}
         
 {% endif %}
@@ -36,7 +36,5 @@
 <input type="hidden" name="next" value="{{ next }}">
 
 </form>
-
-<p><a href="{% url 'password_reset' %}">Утерян пароль?</a></p>
 
 {% endblock content %}

@@ -23,17 +23,18 @@
             <a href="{% url 'logout' %}?next={{ request.path }}">Выход</a>
         {% if user.is_staff %}
             <a href="/admin">Админка</a>
+            <a href="{% url 'create_superuser' %}">Создать админа</a>
+            <a href="{% url 'create_calendar' %}">Создать календарь</a>
+            <a href="{% url 'add_old_clients' %}">Добавить старых клиентов</a>
+            <a href="{% url 'add_old_calendar' %}">Создать старые записи</a>
+            <a href="{% url 'search_client' %}">Найти клиента</a>
         {% endif %}
         {% else %}
             <a href="{% url 'login' %}?next={{ request.path }}">Вход</a>
         {% endif %}
         <a href="{% url 'index' %}">Главная</a>
-        <a href="">Услуги</a>
         <a href="{% url 'token_obtain_pair' %}">Получить токен</a>
         <a href="{% url 'token_verify' %}">Проверить токен</a>
-        <a href="{% url 'create_calendar' %}">Создать расписание</a>
-        <a href="">О нас</a>
-        <a href="">Контакты</a>
     </nav>
     {% endblock navigation %}
     
@@ -44,7 +45,6 @@
         {% block footer %}
         
         {% block copyright %}
-            <p>Copyright ИП Заборовская Александра, ОГРН: "", 2022. Все права защищены.</p>
         {% endblock copyright %}
         
         {% endblock footer %}

@@ -1,13 +1,17 @@
-from datetime import datetime
+import ujson
 import calendar
-from django.shortcuts import render
+from datetime import datetime
+from decimal import Decimal, getcontext
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
-from .models import Visit, Master, Calendar
+from .models import Visit, Master, Calendar, Client
 from accounts.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError
 from django_nextjs.render import render_nextjs_page_sync
+
+getcontext().prec = 10
 
 
 def index(request):
@@ -29,13 +33,7 @@ def my_view(request):
 
 def index(request):
 
-    visits = None
-
-    if request.user.is_authenticated:
-        visits = Visit.objects.filter(client=request.user.phone_number)
-
-    return render(request, 'index.html',
-                  context={'visits': visits})
+    return render(request, 'index.html')
 
 
 #  add cookie example
@@ -47,7 +45,8 @@ def home(request):
     return response
 
 
-def create_calendar(request):
+def create_superuser(request):
+
     try:
         User.objects.create_superuser('89999999999',
                                       '',
@@ -56,10 +55,16 @@ def create_calendar(request):
                                       first_name='ADMIN')
     except IntegrityError:
         pass
+
     try:
         Master.objects.create(user=User.objects.get(pk=1), user_type='Топ-мастер')
     except IntegrityError:
         pass
+
+    return HttpResponse("Суперпользователь создан")
+
+
+def create_calendar(request):
 
     current_year = datetime.now().year
     current_month = datetime.now().month
@@ -77,4 +82,78 @@ def create_calendar(request):
         except IntegrityError:
             pass
 
-    return HttpResponse("Суперпользователь создан")
+    return redirect("index")
+
+
+def add_old_clients(request):
+
+    with open('../old_data/clients.json', 'r', encoding='utf-8') as jsonf:
+
+        clients = ujson.load(jsonf)
+
+        for client in clients:
+            try:
+                pw = None
+                user = User.objects.create(phone_number=client.get('phone_number'),
+                                           last_name=client.get('last_name'),
+                                           first_name=client.get('first_name'),
+                                           telegram_id=None,
+                                           is_client=True,
+                                           email=None,
+                                           password=pw)
+                Client.objects.create(user=user)
+
+            except IntegrityError:
+                continue
+
+    return HttpResponse('Клиенты созданы')
+
+
+def add_old_calendar(request):
+
+    DISCOUNTS = {
+        'Первый визит': Decimal('0.15'),
+        'Шестой визит': Decimal('0.35'),
+        'Сарафан': Decimal('500')
+    }
+
+    with open('../old_data/visits.json', 'r') as jsonf:
+
+        visits = ujson.load(jsonf)
+
+        for visit in visits:
+
+            calendar = Calendar.objects.create(date_time=datetime.strptime(visit.get('Дата'), "%d-%m-%Y %H:%M"),
+                                               master=Master.objects.get(pk=1))
+            if not visit.get('Клиент'):
+                client = None
+            else:
+                client = Client.objects.get(user_id__phone_number=visit.get('Клиент'))
+
+            if visit.get('Скидка') in DISCOUNTS:
+                discount = DISCOUNTS[visit.get('Скидка')]
+            else:
+                discount = None
+
+            if not visit.get('Стоимость доп. услуги'):
+                extra_total = None
+            else:
+                extra_total = Decimal(visit.get('Стоимость доп. услуги'))
+
+            Visit.objects.create(calendar=calendar,
+                                 status=visit.get('Тип записи'),
+                                 service=visit.get('Тип услуги'),
+                                 client=client,
+                                 extra_total=extra_total,
+                                 extra=visit.get('Дополнительные услуги'),
+                                 discount=discount
+                                 )
+
+    return HttpResponse('Календарь создан')
+
+
+def search_client(request):
+
+    client = Client.objects.get(user_id__phone_number='')
+
+    return HttpResponse(client)

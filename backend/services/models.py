@@ -1,4 +1,6 @@
 import locale
+from datetime import datetime
+from django.utils import timezone
 from decimal import Decimal, getcontext
 from django.db import models
 from django.forms import ValidationError
@@ -28,6 +30,7 @@ class Client(models.Model):
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
+        ordering = ['user__last_name']
 
     def __str__(self) -> str:
         return f'{self.user.last_name} {self.user.first_name}'
@@ -71,7 +74,8 @@ class Calendar(models.Model):
         constraints = [models.UniqueConstraint(fields=['date_time', 'master'], name='unique_date_time')]
 
     def __str__(self) -> str:
-        return f'Дата: {self.date_time.strftime("%d-%b-%Y %a %H:%M")} Мастер: {self.master.user}'
+
+        return f'Дата: {timezone.localtime(self.date_time).strftime("%d-%b-%Y %a %H:%M")} Мастер: {self.master.user}'
 
     def save(self, *args, **kwargs):
 
@@ -116,19 +120,25 @@ class Visit(models.Model):
         __empty__ = 'Укажите оценку'
 
     class Discounts(Decimal, models.Choices):
-        FIRST_VISIT = '0.15', 'Первый визит'
+
+        FIRST_VISIT = Decimal('0.15'), 'Первый визит'
+        SIX_VISIT = '0.35', 'Шестой визит'
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
 
-    calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, blank=True, limit_choices_to={'is_free': True},
+    calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, db_index=True, blank=True, limit_choices_to={'is_free': True},
                                     help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, choices=Statuses.choices, default='Предварительная запись', help_text='Необходимо указать.', verbose_name='Тип записи')
+    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices, default='Предварительная запись',
+                              help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
-    client = models.ForeignKey('Client', on_delete=models.SET_NULL, help_text='Необходимо указать.',
+    client = models.ForeignKey('Client', on_delete=models.SET_NULL, db_index=True, help_text='Необходимо указать.',
                                verbose_name='Клиент', null=True, blank=False, to_field='user_id')
     discount = models.DecimalField(max_digits=5, decimal_places=2, choices=Discounts.choices, default=None,
                                    help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
+    extra = models.CharField(max_length=255, null=True, blank=True, verbose_name='Доп. услуги')
+    extra_total = models.DecimalField(max_digits=6, decimal_places=2, default=None,
+                                      verbose_name='Стоимость доп. услуги', null=True, blank=True)
     total = models.DecimalField(max_digits=7, decimal_places=2, editable=False, verbose_name='Вывод по чеку')
     tax = models.DecimalField(max_digits=5, decimal_places=2, editable=False, verbose_name='Налог', null=True)
     review = models.CharField(max_length=250, help_text='Напишите ваш отзыв', verbose_name='Отзыв', null=True, blank=True)
@@ -167,7 +177,10 @@ class Visit(models.Model):
 
     def solveProfit(self):
 
-        self.service_price = self.SERVICE_PRICES[self.service]
+        if self.extra_total:
+            self.service_price = self.SERVICE_PRICES[self.service] + self.extra_total
+        else:
+            self.service_price = self.SERVICE_PRICES[self.service]
 
         if self.isFirstVisit():
             self.discount = self.Discounts.FIRST_VISIT
@@ -183,19 +196,51 @@ class Visit(models.Model):
 
         self.tax = self.total * Decimal('0.04')
 
+    def checkLongService(self):
+
+        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
+            now = datetime(year=self.calendar.date_time.year,
+                           month=self.calendar.date_time.month,
+                           day=self.calendar.date_time.day,
+                           hour=self.calendar.date_time.hour + 2,
+                           minute=self.calendar.date_time.minute)
+            try:
+                next_calendar_record = Calendar.objects.get(date_time=now)
+                next_calendar_record.is_free = False
+                next_calendar_record.save()
+            except Calendar.DoesNotExist:
+                pass
+
     def clean(self):
 
         super().clean()
+
+        # для возможности изменять поля в админке пробрасывается нынешнее значение из календаря
         try:
-            prev_visit_data = Visit.objects.get(id=self.id)
+            prev_visit_data = Visit.objects.get(pk=self.pk)
             self.calendar = prev_visit_data.calendar
         except Visit.DoesNotExist:
             pass
 
+        # проверка клиента на количество записей в месяц и его статус
         if (Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month) and
             Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month).count() >= 2 and
                 self.client.user_type == 'Первый визит'):
             raise ValidationError('Данный пользователь не может иметь больше 2 записей в месяц')
+
+        # проверка след. записи из-за времени процедуры более 2 ч.
+        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
+            now = datetime(year=self.calendar.date_time.year,
+                           month=self.calendar.date_time.month,
+                           day=self.calendar.date_time.day,
+                           hour=self.calendar.date_time.hour + 2,
+                           minute=self.calendar.date_time.minute)
+            try:
+                next_calendar_record = Calendar.objects.get(date_time=now)
+                if next_calendar_record.is_free is False:
+                    raise ValidationError("'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
+            except Calendar.DoesNotExist:
+                pass
 
     def __str__(self) -> str:
 
@@ -205,9 +250,29 @@ class Visit(models.Model):
 
         self.calendar.is_free = True
         self.calendar.save()
+
+        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
+            now = datetime(year=self.calendar.date_time.year,
+                           month=self.calendar.date_time.month,
+                           day=self.calendar.date_time.day,
+                           hour=self.calendar.date_time.hour + 2,
+                           minute=self.calendar.date_time.minute)
+            next_calendar_record = Calendar.objects.get(date_time=now)
+            next_calendar_record.is_free = True
+            next_calendar_record.save()
+
         super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+
+        # для поддержки старых данных
+
+        # if self.client and self.status == self.Statuses.SUCCESSFULLY:
+        #     self.change_visit_dates()
+        # self.solveProfit()
+        # self.solveTax()
+        # self.calendar.is_free = False
+        # self.calendar.save()
 
         try:
             prev_visit_data = Visit.objects.get(id=self.id)
@@ -220,9 +285,9 @@ class Visit(models.Model):
 
         if self.status == self.Statuses.SUCCESSFULLY:
             self.change_visit_dates()
-        else:
-            self.solveProfit()
-            self.solveTax()
-            self.calendar.is_free = False
-            self.calendar.save()
+        self.solveProfit()
+        self.solveTax()
+        self.calendar.is_free = False
+        self.checkLongService()
+        self.calendar.save()
         super(Visit, self).save(*args, **kwargs)

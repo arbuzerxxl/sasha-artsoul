@@ -15,4 +15,7 @@ urlpatterns = router.urls
 urlpatterns += [path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
                 path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
                 path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+                path('count/visits/', VisitCountSerializer.as_view(), name='count_visits'),
+                path('profit/month/', MonthProfitSerializer.as_view(), name='profit_month'),
+                path('profit/year/', YearProfitSerializer.as_view(), name='profit_year'),
                 ]
