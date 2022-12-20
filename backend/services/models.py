@@ -132,8 +132,8 @@ class Visit(models.Model):
                               help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
-    client = models.ForeignKey('Client', on_delete=models.SET_NULL, db_index=True, help_text='Необходимо указать.',
-                               verbose_name='Клиент', null=True, blank=False, to_field='user_id')
+    client = models.ForeignKey('Client', on_delete=models.PROTECT, db_index=True, help_text='Необходимо указать.',
+                               verbose_name='Клиент', blank=False, to_field='user_id')
     discount = models.DecimalField(max_digits=5, decimal_places=2, choices=Discounts.choices, default=None,
                                    help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
     extra = models.CharField(max_length=255, null=True, blank=True, verbose_name='Доп. услуги')
@@ -182,7 +182,7 @@ class Visit(models.Model):
         else:
             self.service_price = self.SERVICE_PRICES[self.service]
 
-        if self.isFirstVisit():
+        if self.isFirstVisit():  # закоментировать для старых записей
             self.discount = self.Discounts.FIRST_VISIT
 
         if not self.discount:
@@ -244,7 +244,7 @@ class Visit(models.Model):
 
     def __str__(self) -> str:
 
-        return f'Запись: {self.calendar} Клиент: [{self.client}] Стоимость: [{self.service}]'
+        return f'Запись: {self.calendar} Клиент: [{self.client}] Стоимость: [{self.total}]'
 
     def delete(self, *args, **kwargs):
 

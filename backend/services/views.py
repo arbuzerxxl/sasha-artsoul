@@ -45,25 +45,6 @@ def home(request):
     return response
 
 
-def create_superuser(request):
-
-    try:
-        User.objects.create_superuser('89999999999',
-                                      '',
-                                      '1234',
-                                      last_name='ADMIN',
-                                      first_name='ADMIN')
-    except IntegrityError:
-        pass
-
-    try:
-        Master.objects.create(user=User.objects.get(pk=1), user_type='Топ-мастер')
-    except IntegrityError:
-        pass
-
-    return HttpResponse("Суперпользователь создан")
-
-
 def create_calendar(request):
 
     current_year = datetime.now().year
@@ -93,7 +74,7 @@ def add_old_clients(request):
 
         for client in clients:
             try:
-                pw = None
+                pw = "".join(list(client.get('phone_number'))[-1:-6:-1])
                 user = User.objects.create(phone_number=client.get('phone_number'),
                                            last_name=client.get('last_name'),
                                            first_name=client.get('first_name'),

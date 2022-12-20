@@ -37,15 +37,15 @@ class VisitAdmin(admin.ModelAdmin):
                                day=item.calendar.date_time.day,
                                hour=item.calendar.date_time.hour + 2,
                                minute=item.calendar.date_time.minute)
-            try:
-                next_calendar_record = Calendar.objects.get(date_time=now)
-                next_calendar_record.is_free = True
-                next_calendar_record.save()
-            except Calendar.DoesNotExist:
-                pass
+                try:
+                    next_calendar_record = Calendar.objects.get(date_time=now)
+                    next_calendar_record.is_free = True
+                    next_calendar_record.save()
+                except Calendar.DoesNotExist:
+                    pass
 
-            item.calendar.is_free = True
-            item.calendar.save()
+        item.calendar.is_free = True
+        item.calendar.save()
 
         queryset.delete()
 

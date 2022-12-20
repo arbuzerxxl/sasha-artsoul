@@ -8,7 +8,7 @@ from aiogram.utils.markdown import text
 from loader import disp, bot
 from logger import bot_logger
 from filters import IsAdminFilter, IsClientFilter
-from keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, registration
+from keyboards.inline_keyboards import visit, admin, menu, user, client, master, calendar, schedule, registration
 from keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
 from keyboards.reply_keyboards import check_phone_number_keyboard
 from handlers.utils import sender_to_admin
@@ -39,7 +39,13 @@ async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
     await query.message.answer(text='Вы отменили ввод данных. Операция прекращена.')
 
 
-@disp.message_handler(commands=("start", "restart", ), state='*')
+@disp.message_handler(IsClientFilter(), commands=['rm'])
+async def process_rm_command(message: types.Message):
+
+    await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
+
+
+@disp.message_handler(commands=("start", "restart", ))
 async def start_handler(event: types.Message):
 
     bot_logger.info(f"[?] Обработка события {event.text} от {event.chat.last_name} {event.chat.first_name}")
@@ -51,10 +57,14 @@ async def start_handler(event: types.Message):
     )
 
 
-@disp.message_handler(IsClientFilter(), commands=['rm'])
-async def process_rm_command(message: types.Message):
+@disp.message_handler(IsClientFilter(), commands="menu")
+async def client_menu_handler(event: types.Message):
 
-    await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
+    bot_logger.info(f"[?] Обработка события {event.text} от {event.chat.last_name} {event.chat.first_name}")
+
+    msg = "<i>Выберите опцию из предложенного списка</i>"
+
+    await event.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=menu)
 
 
 @disp.message_handler(commands=['location'])
@@ -132,7 +142,7 @@ async def process_user_feedback(message: types.Message):
 async def process_admin_command(message: types.Message):
 
     await message.answer("Здесь отображаются только админ-команды",
-                         reply_markup=menu)
+                         reply_markup=admin)
 
 
 @disp.callback_query_handler(admin_callback.filter(action="users"))

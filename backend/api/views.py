@@ -194,6 +194,12 @@ class CalendarViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
+        if self.request.data.get('month', None) and self.request.data.get('master', None) and self.request.data.get('is_free', None):
+            return self.model.objects.filter(date_time__month=self.request.data['month'],
+                                             master=self.request.data['master'],
+                                             is_free=self.request.data['is_free']
+                                             )
+
         if self.request.data.get('date_time', None) and self.request.data.get('master', None):
             return self.model.objects.filter(date_time=self.request.data['date_time'], master=self.request.data['master'])
         elif self.request.data.get('is_free', None):

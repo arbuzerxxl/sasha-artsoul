@@ -6,16 +6,16 @@ volumes:
 
 services:
 
-  telegram_bot:
-    container_name: telegram_bot
-    build: ../telebot/
-    restart: unless-stopped
-    env_file:
-      - ./../.env
-    depends_on:
-      - db
-    networks:
-      main:
+  # telegram_bot:
+  #   container_name: telegram_bot
+  #   build: ../telebot/
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ./../.env
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     main:
 
   db:
     container_name: postgresql_db

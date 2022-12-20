@@ -32,7 +32,7 @@ class VisitSerializer(ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ('calendar', 'pretty_calendar', 'service', 'service_price', 'extra', 'extra_total', 'total', 'rating', )
+        fields = ('client', 'calendar', 'pretty_calendar', 'service', 'service_price', 'extra', 'extra_total', 'total', 'rating', )
 
 
 class ThinVisitSerializer(ModelSerializer):
@@ -43,7 +43,7 @@ class ThinVisitSerializer(ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ('pretty_calendar', 'pretty_client', 'service', 'detail_url', )
+        fields = ('client', 'calendar', 'pretty_calendar', 'pretty_client', 'service', 'detail_url', )
 
 
 class ClientsSerializer(ModelSerializer):

@@ -24,12 +24,15 @@ async def authentication():
         bot_logger.exception(wrong_user_data)
 
 
-async def make_request(method, url, data):
+async def make_request(method, url, data=None):
     """Создает запрос к API сайта"""
 
     token = await authentication()
 
-    payload = ujson.dumps(data)
+    if not data:
+        payload = None
+    else:
+        payload = ujson.dumps(data)
 
     async with aiohttp.ClientSession(trust_env=True) as session:
 

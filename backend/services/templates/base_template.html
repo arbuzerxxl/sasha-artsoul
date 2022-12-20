@@ -23,7 +23,6 @@
             <a href="{% url 'logout' %}?next={{ request.path }}">Выход</a>
         {% if user.is_staff %}
             <a href="/admin">Админка</a>
-            <a href="{% url 'create_superuser' %}">Создать админа</a>
             <a href="{% url 'create_calendar' %}">Создать календарь</a>
             <a href="{% url 'add_old_clients' %}">Добавить старых клиентов</a>
             <a href="{% url 'add_old_calendar' %}">Создать старые записи</a>
