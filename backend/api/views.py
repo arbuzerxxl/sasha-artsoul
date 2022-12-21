@@ -5,6 +5,7 @@ from django.db.models import Sum, DecimalField, Q
 from services.models import Visit, Client, Master, Calendar
 from api.serializers import (VisitSerializer, UserSerializer, ThinVisitSerializer,
                              ClientsSerializer, MastersSerializer, CalendarSerializer,)
+
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser

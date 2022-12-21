@@ -1,6 +1,11 @@
-from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField, CharField)
-from services.models import Visit, Client, Master, Calendar
+from datetime import datetime
+import locale
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField, CharField, ValidationError)
+from services.models import Visit, Client, Master, Calendar
+
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
 
 class UserSerializer(ModelSerializer):
@@ -33,6 +38,43 @@ class VisitSerializer(ModelSerializer):
     class Meta:
         model = Visit
         fields = ('client', 'calendar', 'pretty_calendar', 'service', 'service_price', 'extra', 'extra_total', 'total', 'rating', )
+
+    def validate_client(self, value):
+
+        try:
+            calendar = Calendar.objects.get(pk=self.initial_data['calendar'])
+            month = calendar.date_time.month
+            any_visits = Visit.objects.filter(client=self.initial_data['client'], calendar__date_time__month=month)
+            client = Client.objects.get(user=self.initial_data['client'])
+
+            if any_visits and any_visits.count() >= 2 and client.user_type == 'Первый визит':
+                raise ValidationError(detail='На данный момент Вы не можете иметь больше 2 записей')
+
+        except (Calendar.DoesNotExist, Client.DoesNotExist):
+            pass
+
+        return value
+
+    def validate_service(self, value):
+
+        if value in [Visit.Services.CORRECTION, Visit.Services.BUILD_UP]:
+
+            calendar = Calendar.objects.get(pk=self.initial_data['calendar'])
+
+            local_time = timezone.localtime(calendar.date_time)
+
+            next_visit = timezone.make_aware(datetime(year=local_time.year, month=local_time.month, day=local_time.day,
+                                                      hour=local_time.hour + 2, minute=local_time.minute))
+
+            try:
+                next_calendar_record = Calendar.objects.get(date_time=next_visit)
+                if next_calendar_record.is_free is False:
+                    raise ValidationError(detail="'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
+
+            except Calendar.DoesNotExist:
+                pass
+
+        return value
 
 
 class ThinVisitSerializer(ModelSerializer):

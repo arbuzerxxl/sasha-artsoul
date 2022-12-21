@@ -38,7 +38,7 @@ async def process_create_appointment(query: types.CallbackQuery, state: FSMConte
         msg = text("<i>Я не смог идентифицировать Вас как нашего клиента</i>",
                    "Пожалуйста, пройдите регистрацию",
                    sep="\n")
-        state.finish()
+        await state.finish()
         await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML)
 
 
@@ -72,7 +72,11 @@ async def process_set_master_schedule(query: types.CallbackQuery, state: FSMCont
 
     msg = text(f"<i>Выберите дату и время</i>")
 
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=await free_schedule_days())
+    await bot.send_message(chat_id=query.message.chat.id,
+                           text=msg,
+                           parse_mode=types.ParseMode.HTML,
+                           reply_markup=await free_schedule_days(master=master_phone)
+                           )
 
 
 @disp.callback_query_handler(lambda c: re.fullmatch(
@@ -103,7 +107,7 @@ async def process_set_schedule_day(query: types.CallbackQuery, state: FSMContext
 async def process_request_appointment(message: types.Message, state: FSMContext):
     """Запрос на создание записи от клиента"""
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
 
@@ -117,21 +121,22 @@ async def process_request_appointment(message: types.Message, state: FSMContext)
 
     if status == 201 and response:
 
-        bot_logger.info(
-            f"[+] Создана новая запись. Клиент: {client}, Мастер: {master}, Дата и время: {date_time}"
-        )
+        bot_logger.info(f"[+] Создана новая запись: {response['pretty_calendar']} Клиент: {response['client']}")
 
-        msg = text(f"<i>[{date_time}] Новая запись создана.</i>",
-                   f"<i>Стоимость услуги: <b>{response_data['total']}</b></i>",
+        msg = text("<i>Новая запись создана.</i>",
+                   f"<i>{response['pretty_calendar']}</i>",
+                   f"<i>Услуга: <b>{response['service']}</b></i>",
+                   f"<i>Стоимость услуги: <b>{response['total']}</b></i>",
                    sep='\n')
 
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
     else:
         bot_logger.debug("[!] Попытка зарегистрировать новую запись оказалась безуспешной.")
-        msg = f"<code>Ошибка при вводе данных. Запрос отклонен: [{response.status_code}]</code>"
+        msg = text("<i>На данный момент я не могу записать Вас на прием.</i>",
+                   sep="\n")
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
-        for error in response_data.values():
+        for error in response.values():
             msg = f"<b>{error[0]}</b>"
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)

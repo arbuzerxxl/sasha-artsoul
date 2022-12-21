@@ -1,6 +1,7 @@
+from datetime import datetime
+from django.utils import timezone
 from django.contrib import admin
 from .models import Calendar, Client, Master, Visit
-from datetime import datetime
 
 
 @admin.register(Master)
@@ -11,7 +12,6 @@ class MasterAdmin(admin.ModelAdmin):
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('user', 'user_type', 'last_visit_manicure', 'last_visit_pedicure')
-    # sortable_by = ('user__last_name')
 
 
 @admin.register(Calendar)
@@ -32,20 +32,22 @@ class VisitAdmin(admin.ModelAdmin):
         for item in queryset:
 
             if item.service in [item.Services.CORRECTION, item.Services.BUILD_UP]:
-                now = datetime(year=item.calendar.date_time.year,
-                               month=item.calendar.date_time.month,
-                               day=item.calendar.date_time.day,
-                               hour=item.calendar.date_time.hour + 2,
-                               minute=item.calendar.date_time.minute)
+
+                local_time = timezone.localtime(item.calendar.date_time)
+
+                next_visit = timezone.make_aware(datetime(year=local_time.year, month=local_time.month, day=local_time.day,
+                                                          hour=local_time.hour + 2, minute=local_time.minute))
+
                 try:
-                    next_calendar_record = Calendar.objects.get(date_time=now)
+                    next_calendar_record = Calendar.objects.get(date_time=next_visit)
                     next_calendar_record.is_free = True
                     next_calendar_record.save()
+
                 except Calendar.DoesNotExist:
                     pass
 
-        item.calendar.is_free = True
-        item.calendar.save()
+            item.calendar.is_free = True
+            item.calendar.save()
 
         queryset.delete()
 

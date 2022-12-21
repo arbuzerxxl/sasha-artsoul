@@ -83,7 +83,7 @@ async def process_create_user(message: types.Message, state: FSMContext):
 async def process_request_create_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy():
 

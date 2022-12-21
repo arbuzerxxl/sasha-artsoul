@@ -5,17 +5,17 @@ from handlers.utils import make_request
 from settings import URL
 
 
-async def free_schedule_days():
+async def free_schedule_days(master):
 
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
     month = datetime.now().month
 
-    free_days = {}
+    free_days = []
 
     response, status = await make_request(method="GET",
                                           url=(URL + "api/calendar/"),
-                                          data={"master": "89996453956",
+                                          data={"master": master,
                                                 "is_free": True,
                                                 "month": month})
 
@@ -24,11 +24,11 @@ async def free_schedule_days():
         if datetime.strptime(calendar_day["date_time"], "%d-%m-%Y %H:%M").timestamp() < datetime.now().timestamp():
             continue
         else:
-            free_days[calendar_day["date_time"]] = calendar_day["id"]
+            free_days.append((calendar_day["date_time"], calendar_day["id"]))
 
     free_schedule_days = InlineKeyboardMarkup(row_width=3)
 
-    for date, calendar_id in free_days.items():
+    for date, calendar_id in free_days:
 
         button = datetime.strptime(date, "%d-%m-%Y %H:%M").strftime("%d-%b %H:%M")
 

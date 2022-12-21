@@ -66,12 +66,13 @@ class Calendar(models.Model):
     date_time = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
     master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера',
                                verbose_name='Мастер', to_field='user_id')
-    is_free = models.BooleanField(default=True, editable=False, verbose_name='Запись свободна')
+    is_free = models.BooleanField(default=True, editable=True, verbose_name='Запись свободна')
 
     class Meta:
         verbose_name = "Календарь"
         verbose_name_plural = "Календарь"
         constraints = [models.UniqueConstraint(fields=['date_time', 'master'], name='unique_date_time')]
+        ordering = ['date_time']
 
     def __str__(self) -> str:
 
@@ -196,7 +197,7 @@ class Visit(models.Model):
 
         self.tax = self.total * Decimal('0.04')
 
-    def checkLongService(self):
+    def checkLongService(self):  # TODO: объединить эту валидацию в одну функцию, чтобы использовать во всех местах
 
         if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
             now = datetime(year=self.calendar.date_time.year,
@@ -222,7 +223,7 @@ class Visit(models.Model):
         except Visit.DoesNotExist:
             pass
 
-        # проверка клиента на количество записей в месяц и его статус
+        # проверка клиента на количество записей в месяц и его статус TODO: также поправить условие согласно сериализатору
         if (Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month) and
             Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month).count() >= 2 and
                 self.client.user_type == 'Первый визит'):
@@ -265,15 +266,6 @@ class Visit(models.Model):
 
     def save(self, *args, **kwargs):
 
-        # для поддержки старых данных
-
-        # if self.client and self.status == self.Statuses.SUCCESSFULLY:
-        #     self.change_visit_dates()
-        # self.solveProfit()
-        # self.solveTax()
-        # self.calendar.is_free = False
-        # self.calendar.save()
-
         try:
             prev_visit_data = Visit.objects.get(id=self.id)
 
@@ -288,6 +280,6 @@ class Visit(models.Model):
         self.solveProfit()
         self.solveTax()
         self.calendar.is_free = False
-        self.checkLongService()
+        self.checkLongService()  # нельзя пока убирать, т.к. чер админку не производится проверка при создании
         self.calendar.save()
         super(Visit, self).save(*args, **kwargs)
