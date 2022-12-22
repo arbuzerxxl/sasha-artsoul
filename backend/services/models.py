@@ -66,12 +66,13 @@ class Calendar(models.Model):
     date_time = models.DateTimeField(unique=True, help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
     master = models.ForeignKey('Master', on_delete=models.CASCADE, help_text='Укажите зарегистрированного мастера',
                                verbose_name='Мастер', to_field='user_id')
-    is_free = models.BooleanField(default=True, editable=False, verbose_name='Запись свободна')
+    is_free = models.BooleanField(default=True, editable=True, verbose_name='Запись свободна')
 
     class Meta:
         verbose_name = "Календарь"
         verbose_name_plural = "Календарь"
         constraints = [models.UniqueConstraint(fields=['date_time', 'master'], name='unique_date_time')]
+        ordering = ['date_time']
 
     def __str__(self) -> str:
 
@@ -132,8 +133,8 @@ class Visit(models.Model):
                               help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
-    client = models.ForeignKey('Client', on_delete=models.SET_NULL, db_index=True, help_text='Необходимо указать.',
-                               verbose_name='Клиент', null=True, blank=False, to_field='user_id')
+    client = models.ForeignKey('Client', on_delete=models.PROTECT, db_index=True, help_text='Необходимо указать.',
+                               verbose_name='Клиент', blank=False, to_field='user_id')
     discount = models.DecimalField(max_digits=5, decimal_places=2, choices=Discounts.choices, default=None,
                                    help_text='Необходимо указать.', verbose_name='Тип скидки', null=True, blank=True)
     extra = models.CharField(max_length=255, null=True, blank=True, verbose_name='Доп. услуги')
@@ -182,7 +183,7 @@ class Visit(models.Model):
         else:
             self.service_price = self.SERVICE_PRICES[self.service]
 
-        if self.isFirstVisit():
+        if self.isFirstVisit():  # TODO: проблема с отображением занятости календаря и предварительных записей
             self.discount = self.Discounts.FIRST_VISIT
 
         if not self.discount:
@@ -196,20 +197,42 @@ class Visit(models.Model):
 
         self.tax = self.total * Decimal('0.04')
 
-    def checkLongService(self):
+    @staticmethod
+    def searchNextCalendarEntry(visit=None, service: str = None) -> Calendar | None:
 
-        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
-            now = datetime(year=self.calendar.date_time.year,
-                           month=self.calendar.date_time.month,
-                           day=self.calendar.date_time.day,
-                           hour=self.calendar.date_time.hour + 2,
-                           minute=self.calendar.date_time.minute)
-            try:
-                next_calendar_record = Calendar.objects.get(date_time=now)
-                next_calendar_record.is_free = False
-                next_calendar_record.save()
-            except Calendar.DoesNotExist:
-                pass
+        if visit and hasattr(visit, 'service') and visit.service in [Visit.Services.CORRECTION, Visit.Services.BUILD_UP]:
+
+            local_time = timezone.localtime(visit.calendar.date_time)
+
+        elif service and hasattr(visit, 'initial_data') and service in [Visit.Services.CORRECTION, Visit.Services.BUILD_UP]:
+
+            calendar = Calendar.objects.get(pk=visit.initial_data['calendar'])
+
+            local_time = timezone.localtime(calendar.date_time)
+
+        else:
+            return None
+
+        next_calendar_datetime = timezone.make_aware(datetime(year=local_time.year, month=local_time.month, day=local_time.day,
+                                                              hour=local_time.hour + 2, minute=local_time.minute))
+
+        try:
+            next_calendar = Calendar.objects.get(date_time=next_calendar_datetime)
+            return next_calendar
+        except Calendar.DoesNotExist:
+            return None
+
+    def setNextCalendarEntry(self, close: bool):
+
+        next_calendar: Calendar | None = Visit.searchNextCalendarEntry(visit=self)
+
+        if next_calendar and close is True:
+            next_calendar.is_free = False
+            next_calendar.save()
+
+        if next_calendar and close is False:
+            next_calendar.is_free = True
+            next_calendar.save()
 
     def clean(self):
 
@@ -223,59 +246,31 @@ class Visit(models.Model):
             pass
 
         # проверка клиента на количество записей в месяц и его статус
-        if (Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month) and
-            Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month).count() >= 2 and
-                self.client.user_type == 'Первый визит'):
+        client_also_month_visits = Visit.objects.filter(client=self.client, calendar__date_time__month=self.calendar.date_time.month)
+
+        if client_also_month_visits and client_also_month_visits.count() >= 2 and self.client.user_type == 'Первый визит':
             raise ValidationError('Данный пользователь не может иметь больше 2 записей в месяц')
 
         # проверка след. записи из-за времени процедуры более 2 ч.
-        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
-            now = datetime(year=self.calendar.date_time.year,
-                           month=self.calendar.date_time.month,
-                           day=self.calendar.date_time.day,
-                           hour=self.calendar.date_time.hour + 2,
-                           minute=self.calendar.date_time.minute)
-            try:
-                next_calendar_record = Calendar.objects.get(date_time=now)
-                if next_calendar_record.is_free is False:
-                    raise ValidationError("'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
-            except Calendar.DoesNotExist:
-                pass
+        next_visit: Calendar | None = Visit.searchNextCalendarEntry(visit=self)
+        if next_visit and next_visit.is_free is False:
+            raise ValidationError("'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
 
     def __str__(self) -> str:
 
-        return f'Запись: {self.calendar} Клиент: [{self.client}] Стоимость: [{self.service}]'
+        return f'Запись: {self.calendar} Клиент: [{self.client}] Стоимость: [{self.total}]'
 
     def delete(self, *args, **kwargs):
 
         self.calendar.is_free = True
         self.calendar.save()
-
-        if self.service in [self.Services.CORRECTION, self.Services.BUILD_UP]:
-            now = datetime(year=self.calendar.date_time.year,
-                           month=self.calendar.date_time.month,
-                           day=self.calendar.date_time.day,
-                           hour=self.calendar.date_time.hour + 2,
-                           minute=self.calendar.date_time.minute)
-            next_calendar_record = Calendar.objects.get(date_time=now)
-            next_calendar_record.is_free = True
-            next_calendar_record.save()
-
+        self.setNextCalendarEntry(close=False)
         super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
 
-        # для поддержки старых данных
-
-        # if self.client and self.status == self.Statuses.SUCCESSFULLY:
-        #     self.change_visit_dates()
-        # self.solveProfit()
-        # self.solveTax()
-        # self.calendar.is_free = False
-        # self.calendar.save()
-
         try:
-            prev_visit_data = Visit.objects.get(id=self.id)
+            prev_visit_data = Visit.objects.get(pk=self.pk)
 
             if prev_visit_data.calendar.pk != self.calendar.pk:
                 prev_visit_data.calendar.is_free = True
@@ -288,6 +283,6 @@ class Visit(models.Model):
         self.solveProfit()
         self.solveTax()
         self.calendar.is_free = False
-        self.checkLongService()
         self.calendar.save()
+        self.setNextCalendarEntry(close=True)
         super(Visit, self).save(*args, **kwargs)

@@ -1,6 +1,8 @@
 from aiogram.utils.callback_data import CallbackData
 
-admin_callback = CallbackData("menu", "action")
+admin_callback = CallbackData("admin", "action")
+
+menu_callbalck = CallbackData("menu", "action")
 
 user_callback = CallbackData("users", "action")
 

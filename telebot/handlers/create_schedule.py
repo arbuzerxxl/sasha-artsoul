@@ -77,7 +77,7 @@ async def process_set_master_schedule(message: types.Message, state: FSMContext)
 async def process_create_schedule(message: types.Message, state: FSMContext):
     """Создает запись из расписания на основе API"""
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
         state_data.setdefault('time', message.text)
@@ -111,7 +111,7 @@ async def process_create_schedule(message: types.Message, state: FSMContext):
 async def process_delete_schedule(message: types.Message, state: FSMContext):
     """Удаляет запись из расписания на основе API"""
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     token = authentication()
 

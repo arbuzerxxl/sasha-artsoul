@@ -1,12 +1,17 @@
+import prettytable as pt
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram_calendar import SimpleCalendar, DialogCalendar
+from aiogram.types import InputMediaPhoto
+from aiogram.utils.markdown import text
 from loader import disp, bot
 from logger import bot_logger
-from filters import IsAdminFilter
-from keyboards.inline_keyboards import visit, menu, user, client, master, calendar, schedule, search_user, search_schedule
+from filters import IsAdminFilter, IsClientFilter
+from keyboards.inline_keyboards import visit, admin, menu, user, client, master, calendar, schedule, registration
 from keyboards.callbacks import admin_callback, user_callback, calendar_callback, schedule_callback, cancel_callback
+from keyboards.reply_keyboards import check_phone_number_keyboard
+from handlers.utils import sender_to_admin
 
 
 @disp.message_handler(state='*', commands='cancel')
@@ -34,57 +39,110 @@ async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
     await query.message.answer(text='Вы отменили ввод данных. Операция прекращена.')
 
 
-@disp.message_handler(commands=["hello"])
-async def hello(event: types.Message):
-
-    bot_logger.info(f"[?] Бот обрабатывает событие {event}")
-
-    await event.answer(
-        f"Привет, {event.from_user.get_mention(as_html=True)} ?!",
-        parse_mode=types.ParseMode.HTML,
-    )
-
-
-@disp.message_handler(commands=["start, restart"])
-async def start_handler(event: types.Message):
-
-    bot_logger.info(f"[?] Бот обрабатывает событие {event}")
-
-    await event.answer(
-        f"Привет, {event.from_user.get_mention(as_html=True)} ?!",
-        parse_mode=types.ParseMode.HTML,
-    )
-
-
-@disp.message_handler(IsAdminFilter(), commands=['search_user'])
-async def process_search_user_command(message: types.Message):
-
-    await message.answer("Поиск пользователей",
-                         reply_markup=search_user)
-
-
-# @disp.message_handler(content_types=types.ContentType.ANY)
-# async def start_handler(event: types.Message):
-
-#     bot_logger.info(f"[?] Бот обрабатывает событие {event}")
-
-#     await event.answer(
-#         f"{event.text}",
-#         parse_mode=types.ParseMode.MARKDOWN_V2,
-#     )
-
-
-@disp.message_handler(commands=['rm'])
+@disp.message_handler(IsClientFilter(), commands=['rm'])
 async def process_rm_command(message: types.Message):
 
     await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
+
+
+@disp.message_handler(commands=("start", "restart", ))
+async def start_handler(event: types.Message):
+
+    bot_logger.info(f"[?] Обработка события {event.text} от {event.chat.last_name} {event.chat.first_name}")
+
+    await event.answer(
+        f"Привет, {event.from_user.get_mention(as_html=True)} ?!",
+        parse_mode=types.ParseMode.HTML,
+        reply_markup=registration
+    )
+
+
+@disp.message_handler(IsClientFilter(), commands="menu")
+async def client_menu_handler(event: types.Message):
+
+    bot_logger.info(f"[?] Обработка события {event.text} от {event.chat.last_name} {event.chat.first_name}")
+
+    msg = "<i>Выберите опцию из предложенного списка</i>"
+
+    await event.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=menu)
+
+
+@disp.message_handler(commands=['location'])
+async def process_geo_location(message: types.Message):
+
+    await bot.send_location(chat_id=message.chat.id, latitude=float(55.797568), longitude=float(37.939155))
+
+
+@disp.message_handler(commands=['examples'])
+async def process_give_examples(message: types.Message):
+
+    data = [InputMediaPhoto("AgACAgIAAxkDAAIQ-GOgPmmahdYuyy9X0CRYhxrLUBm1AAIiwjEbV5IISVWAXsYO14QWAQADAgADdwADLAQ"),
+            InputMediaPhoto("AgACAgIAAxkDAAIQ-WOgPmpEIjjQUC4f9Ma1RQdup8qiAAIjwjEbV5IISfbRnc0PsOp9AQADAgADdwADLAQ"),
+            InputMediaPhoto("AgACAgIAAxkDAAIQ-mOgPmzkxixNo6DBoOp86jGzSAItAAIkwjEbV5IISd-C5FpcvLiOAQADAgADdwADLAQ"),
+            ]
+
+    await bot.send_media_group(chat_id=message.chat.id, media=data)
+
+
+@disp.message_handler(commands=['channel'])
+async def process_give_channel(message: types.Message):
+
+    msg = "https://t.me/+mjzPIE8pi205NTE6"
+
+    await message.answer(text=msg)
+
+
+@disp.message_handler(commands=['price'])
+async def process_give_price(message: types.Message):
+
+    table = pt.PrettyTable(['Процедура', 'Цена'])
+    table.align['Процедура'] = 'l'
+    table.align['Цена'] = 'c'
+
+    data = [
+        ('Маникюр', 1000),
+        ('Маникюр с покрытием', 2000),
+        ('Коррекция', 2800),
+        ('Наращивание', 3800),
+        ('Френч', 2500),
+        ('Педикюр', 2600),
+        ('Педикюр с покрытием (стопа)', 3000),
+        ('Педикюр с покрытием (пальчики)', 2300),
+    ]
+
+    for symbol, price in data:
+        table.add_row([symbol, f'{price}'])
+
+    msg = f'<pre>{table}</pre>'
+
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+
+@disp.message_handler(commands=['feedback'])
+async def process_feedback(message: types.Message):
+
+    msg = text("Для обратной связи мне необходим Ваш номер телефона.",
+               "Для этого воспользуйтесь безопасной функцией телеграмма.",
+               sep="\n")
+
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=check_phone_number_keyboard)
+
+
+@disp.message_handler(content_types=types.ContentType.CONTACT)
+async def process_user_feedback(message: types.Message):
+
+    msg_to_admin = text(f"Пользователь: {message.contact.first_name} {message.contact.last_name} хочет с Вами связаться.",
+                        f"t.me/{message.contact.phone_number}",
+                        sep="\n")
+
+    await sender_to_admin(msg=msg_to_admin)
 
 
 @disp.message_handler(IsAdminFilter(), commands=['admin'])
 async def process_admin_command(message: types.Message):
 
     await message.answer("Здесь отображаются только админ-команды",
-                         reply_markup=menu)
+                         reply_markup=admin)
 
 
 @disp.callback_query_handler(admin_callback.filter(action="users"))

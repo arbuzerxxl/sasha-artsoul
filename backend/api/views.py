@@ -5,6 +5,7 @@ from django.db.models import Sum, DecimalField, Q
 from services.models import Visit, Client, Master, Calendar
 from api.serializers import (VisitSerializer, UserSerializer, ThinVisitSerializer,
                              ClientsSerializer, MastersSerializer, CalendarSerializer,)
+
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAdminUser
@@ -24,6 +25,8 @@ class UserViewSet(ModelViewSet):
             return self.model.objects.filter(phone_number=self.request.data['phone_number'])
         elif self.request.data.get('is_client', None):
             return self.model.objects.filter(is_client=self.request.data['is_client'])
+        elif self.request.data.get('telegram_id', None):
+            return self.model.objects.filter(telegram_id=self.request.data['telegram_id'])
         else:
             return self.model.objects.all()
 
@@ -192,6 +195,12 @@ class CalendarViewSet(ModelViewSet):
     permission_classes = (IsAdminUser, )
 
     def get_queryset(self):
+        if self.request.data.get('month', None) and self.request.data.get('master', None) and self.request.data.get('is_free', None):
+            return self.model.objects.filter(date_time__month=self.request.data['month'],
+                                             master=self.request.data['master'],
+                                             is_free=self.request.data['is_free']
+                                             )
+
         if self.request.data.get('date_time', None) and self.request.data.get('master', None):
             return self.model.objects.filter(date_time=self.request.data['date_time'], master=self.request.data['master'])
         elif self.request.data.get('is_free', None):

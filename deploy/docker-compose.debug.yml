@@ -6,25 +6,23 @@ volumes:
 
 services:
 
-  telegram_bot:
-    container_name: telegram_bot
-    build: ../telebot/
-    restart: unless-stopped
-    env_file:
-      - ./../.env
-    depends_on:
-      - db
-    networks:
-      main:
+  # telegram_bot:
+  #   container_name: telegram_bot
+  #   build: ../telebot/
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ./../.env
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     main:
 
   db:
     container_name: postgresql_db
     image: postgres:14-alpine
     restart: unless-stopped
-    environment:  # TODO: заменить на .env
-      - POSTGRES_USER=artsoul
-      - POSTGRES_PASSWORD=porosenok0211
-      - POSTGRES_DB=artsoul
+    env_file:
+      - ./../.env
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     networks:

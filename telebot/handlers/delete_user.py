@@ -90,7 +90,7 @@ async def process_request_delete_user(message: types.Message, state: FSMContext)
 
     await state.finish()
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     token = authentication()
 

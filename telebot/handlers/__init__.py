@@ -1,5 +1,6 @@
 from .defaults import disp
 from .registration import disp
+from .appointment import disp
 from .create_user import disp
 from .edit_user import disp
 from .delete_user import disp

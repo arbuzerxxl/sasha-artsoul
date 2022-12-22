@@ -51,7 +51,7 @@ async def process_approve_deletion_user(message: types.Message, state: FSMContex
 async def process_delete_schedule(message: types.Message, state: FSMContext):
     """Удаляет запись из расписания на основе API"""
 
-    bot_logger.info(f"[?] Обработка события: {message}")
+    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
 
     token = authentication()
 
