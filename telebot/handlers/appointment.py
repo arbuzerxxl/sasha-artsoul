@@ -57,7 +57,7 @@ async def process_set_service(message: types.Message, state: FSMContext) -> type
 
     msg = "<i>Выберите своего мастера:</i>"
 
-    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_user)
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=await search_user(user_type='master'))
 
 
 @disp.callback_query_handler(lambda c: re.fullmatch(

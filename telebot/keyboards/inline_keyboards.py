@@ -11,30 +11,73 @@ async def free_schedule_days(master):
 
     month = datetime.now().month
 
-    free_days = []
-
-    response, status = await make_request(method="GET",
-                                          url=(URL + "api/calendar/"),
-                                          data={"master": master,
-                                                "is_free": True,
-                                                "month": month})
-
-    for calendar_day in response:
-
-        if datetime.strptime(calendar_day["date_time"], "%d-%m-%Y %H:%M").timestamp() < datetime.now().timestamp():
-            continue
-        else:
-            free_days.append((calendar_day["date_time"], calendar_day["id"]))
-
     free_schedule_days = InlineKeyboardMarkup(row_width=3)
 
-    for date, calendar_id in free_days:
+    response, status = await make_request(method="GET", url=(URL + "api/calendar/"), data={"master": master, "is_free": True, "month": month})
 
-        button = datetime.strptime(date, "%d-%m-%Y %H:%M").strftime("%d-%b %H:%M")
+    if status >= 400 or not response:
 
-        free_schedule_days.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date}#{calendar_id}"))
+        free_schedule_days.insert(InlineKeyboardButton('Доступных окон не найдено', callback_data="cancel:cancel"))
+
+    else:
+
+        free_days = []
+
+        for calendar_day in response:
+
+            if datetime.strptime(calendar_day["date_time"], "%d-%m-%Y %H:%M").timestamp() < datetime.now().timestamp():
+                continue
+            else:
+                free_days.append((calendar_day["date_time"], calendar_day["id"]))
+
+        for date, calendar_id in free_days:
+
+            button = datetime.strptime(date, "%d-%m-%Y %H:%M").strftime("%d-%b %H:%M")
+
+            free_schedule_days.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date}#{calendar_id}"))
+
+        free_schedule_days.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
     return free_schedule_days
+
+
+async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
+    """Поиск пользователя в БД на основе API и вывод в окно в виде InlineKeyboard"""
+
+    users_keyboard = InlineKeyboardMarkup()
+
+    if not user_type:
+        users_keyboard.insert(InlineKeyboardButton("Аргумент 'user' не указан", callback_data="cancel:cancel"))
+        return users_keyboard
+
+    if user_type == 'client':
+        url = (URL + "api/clients/")
+        inline_text = 'Клиентов не найдено'
+    elif user_type == 'master':
+        url = (URL + "api/masters/")
+        inline_text = 'Мастеров не найдено'
+
+    response, status = await make_request(method="GET", url=url)
+
+    if status >= 400 or not response:
+
+        users_keyboard.insert(InlineKeyboardButton(inline_text, callback_data="cancel:cancel"))
+
+    elif response:
+
+        for user in response:
+            if user_type == 'client':
+                user_full_name = user['pretty_client']
+            if user_type == 'master':
+                user_full_name = user['pretty_master']
+
+            users_keyboard.add(InlineKeyboardButton(text=user_full_name, callback_data=f"{user['user']}#{user_full_name}"))
+
+    else:
+
+        users_keyboard.insert(InlineKeyboardButton(inline_text, callback_data="cancel:cancel"))
+
+    return users_keyboard
 
 
 registration = InlineKeyboardMarkup()
@@ -50,14 +93,11 @@ menu.insert(InlineKeyboardButton('Записаться на прием', callbac
 menu.insert(InlineKeyboardButton('Отменить запись', callback_data="menu:cancel"))
 menu.insert(InlineKeyboardButton('Активные записи', callback_data="menu:active"))
 menu.insert(InlineKeyboardButton('История записей', callback_data="menu:history"))
+menu.add(InlineKeyboardButton('Выйти из меню', callback_data="cancel:cancel"))
 
 user = InlineKeyboardMarkup(row_width=2)
 user.insert(InlineKeyboardButton('Клиенты', callback_data="users:clients"))
 user.insert(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
-
-search_user = InlineKeyboardMarkup(row_width=2)
-search_user.insert(InlineKeyboardButton('Продолжить', callback_data="users:search"))
-search_user.insert(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 search_schedule = InlineKeyboardMarkup(row_width=2)
 search_schedule.insert(InlineKeyboardButton('Продолжить', callback_data="schedule:search"))

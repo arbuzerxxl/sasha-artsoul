@@ -20,29 +20,31 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
     current_state = await state.get_state()
 
+    msg = "<i>Вы отменили ввод данных. Операция прекращена.</i>"
+
     if current_state is None:
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=types.ReplyKeyboardRemove())
         return
 
     await state.finish()
-    await message.answer(text='Вы отменили ввод данных. Операция прекращена.')
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=types.ReplyKeyboardRemove())
 
 
 @disp.callback_query_handler(cancel_callback.filter(action="cancel"), state='*')
 async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
 
+    await query.message.delete_reply_markup()
+
     current_state = await state.get_state()
 
+    msg = "<i>Вы отменили ввод данных. Операция прекращена.</i>"
+
     if current_state is None:
+        await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)
         return
 
     await state.finish()
-    await query.message.answer(text='Вы отменили ввод данных. Операция прекращена.')
-
-
-@disp.message_handler(IsClientFilter(), commands=['rm'])
-async def process_rm_command(message: types.Message):
-
-    await message.answer("Убираем шаблоны сообщений", reply_markup=types.ReplyKeyboardRemove())
+    await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
 
 @disp.message_handler(commands=("start", "restart", ))
@@ -50,11 +52,9 @@ async def start_handler(event: types.Message):
 
     bot_logger.info(f"[?] Обработка события {event.text} от {event.chat.last_name} {event.chat.first_name}")
 
-    await event.answer(
-        f"Привет, {event.from_user.get_mention(as_html=True)} ?!",
-        parse_mode=types.ParseMode.HTML,
-        reply_markup=registration
-    )
+    msg = ""
+
+    await event.answer(msg, parse_mode=types.ParseMode.HTML, eply_markup=registration)
 
 
 @disp.message_handler(IsClientFilter(), commands="menu")

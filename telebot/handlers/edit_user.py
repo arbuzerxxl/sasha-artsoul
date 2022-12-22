@@ -55,7 +55,7 @@ async def process_edit_user(query: types.CallbackQuery) -> types.Message:
 
 @disp.callback_query_handler(client_callback.filter(action="edit"))
 async def process_edit_client(query: types.CallbackQuery) -> types.Message:
-    """То же, что и process_edit_user, но принимает запроспользователя (clients:edit)."""
+    """То же, что и process_edit_user, но принимает запрос пользователя (clients:edit)."""
 
     msg = "<i>Вы хотите изменить клиента, верно?</i>"
 
