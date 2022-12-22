@@ -57,22 +57,10 @@ class VisitSerializer(ModelSerializer):
 
     def validate_service(self, value):
 
-        if value in [Visit.Services.CORRECTION, Visit.Services.BUILD_UP]:
+        next_calendar: Calendar | None = Visit.searchNextCalendarEntry(visit=self, service=value)
 
-            calendar = Calendar.objects.get(pk=self.initial_data['calendar'])
-
-            local_time = timezone.localtime(calendar.date_time)
-
-            next_visit = timezone.make_aware(datetime(year=local_time.year, month=local_time.month, day=local_time.day,
-                                                      hour=local_time.hour + 2, minute=local_time.minute))
-
-            try:
-                next_calendar_record = Calendar.objects.get(date_time=next_visit)
-                if next_calendar_record.is_free is False:
-                    raise ValidationError(detail="'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
-
-            except Calendar.DoesNotExist:
-                pass
+        if next_calendar and next_calendar.is_free is False:
+            raise ValidationError(detail="'Наращивание' и 'Коррекция' требуют больше 2 часов работы. Найдите более подходящее время записи.")
 
         return value
 

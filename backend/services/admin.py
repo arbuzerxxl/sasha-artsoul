@@ -1,5 +1,3 @@
-from datetime import datetime
-from django.utils import timezone
 from django.contrib import admin
 from .models import Calendar, Client, Master, Visit
 
@@ -31,26 +29,13 @@ class VisitAdmin(admin.ModelAdmin):
 
         for item in queryset:
 
-            if item.service in [item.Services.CORRECTION, item.Services.BUILD_UP]:
+            next_calendar: Calendar | None = Visit.searchNextCalendarEntry(visit=item)
 
-                local_time = timezone.localtime(item.calendar.date_time)
-
-                next_visit = timezone.make_aware(datetime(year=local_time.year, month=local_time.month, day=local_time.day,
-                                                          hour=local_time.hour + 2, minute=local_time.minute))
-
-                try:
-                    next_calendar_record = Calendar.objects.get(date_time=next_visit)
-                    next_calendar_record.is_free = True
-                    next_calendar_record.save()
-
-                except Calendar.DoesNotExist:
-                    pass
+            if next_calendar:
+                next_calendar.is_free = True
+                next_calendar.save()
 
             item.calendar.is_free = True
             item.calendar.save()
 
         queryset.delete()
-
-    def delete_model(self, request, obj):
-
-        obj.delete()

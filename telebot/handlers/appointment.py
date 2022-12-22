@@ -29,16 +29,21 @@ async def process_create_appointment(query: types.CallbackQuery, state: FSMConte
     response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"telegram_id": query.message.chat.id})
 
     if status == 200 and response:
+
         async with state.proxy() as state_data:
             state_data['client'] = response[0]['phone_number']
-            print(state_data['client'])
+
         msg = text(f"<i>Пожалуйста, выберите услугу:</i>")
+
         await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=services_keyboard)
+
     else:
         msg = text("<i>Я не смог идентифицировать Вас как нашего клиента</i>",
                    "Пожалуйста, пройдите регистрацию",
                    sep="\n")
+
         await state.finish()
+
         await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML)
 
 
