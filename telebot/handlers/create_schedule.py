@@ -15,7 +15,6 @@ class Schedule(StatesGroup):
     set_time = State()
     set_master = State()
     create_request = State()
-    delete_request = State()
 
 
 @disp.callback_query_handler(simple_cal_callback.filter())
@@ -76,8 +75,7 @@ async def process_set_master_schedule(message: types.Message, state: FSMContext)
     pattern=r'^([\d]{11}#([А-Я]{1}[а-яё]{2,15})\s([А-Я]{1}[а-яё]{2,15}))$',
     string=c.data), state=Schedule.create_request)
 async def process_create_schedule(query: types.CallbackQuery, state: FSMContext):
-
-    """Создает запись из расписания на основе API"""
+    """Создает запись в расписании на основе API"""
 
     await query.message.delete_reply_markup()
 
@@ -102,5 +100,7 @@ async def process_create_schedule(query: types.CallbackQuery, state: FSMContext)
 
     else:
         msg = f"<code>Ошибка: [{status}]</code>"
+
+    await state.finish()
 
     await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)

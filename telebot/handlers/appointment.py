@@ -7,7 +7,7 @@ from loader import disp, bot
 from logger import bot_logger
 from settings import URL
 from keyboards.callbacks import menu_callbalck
-from keyboards.inline_keyboards import search_user, free_schedule_days
+from keyboards.inline_keyboards import search_user, search_schedule
 from keyboards.reply_keyboards import services_keyboard, continue_cancel_keyboard
 from handlers.utils import make_request
 
@@ -77,11 +77,8 @@ async def process_set_master_schedule(query: types.CallbackQuery, state: FSMCont
 
     msg = text(f"<i>Выберите дату и время</i>")
 
-    await bot.send_message(chat_id=query.message.chat.id,
-                           text=msg,
-                           parse_mode=types.ParseMode.HTML,
-                           reply_markup=await free_schedule_days(master=master_phone)
-                           )
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
+                           reply_markup=await search_schedule(master=master_phone))
 
 
 @disp.callback_query_handler(lambda c: re.fullmatch(

@@ -5,19 +5,19 @@ from handlers.utils import make_request
 from settings import URL
 
 
-async def free_schedule_days(master):
+async def search_schedule(master: str = None, method: str = None, month: int = None) -> InlineKeyboardMarkup:
 
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
     month = datetime.now().month
 
-    free_schedule_days = InlineKeyboardMarkup(row_width=3)
+    schedule_keyboard = InlineKeyboardMarkup(row_width=3)
 
     response, status = await make_request(method="GET", url=(URL + "api/calendar/"), data={"master": master, "is_free": True, "month": month})
 
     if status >= 400 or not response:
 
-        free_schedule_days.insert(InlineKeyboardButton('Доступных окон не найдено', callback_data="cancel:cancel"))
+        schedule_keyboard.insert(InlineKeyboardButton('Доступных окон не найдено', callback_data="cancel:cancel"))
 
     else:
 
@@ -28,17 +28,20 @@ async def free_schedule_days(master):
             if datetime.strptime(calendar_day["date_time"], "%d-%m-%Y %H:%M").timestamp() < datetime.now().timestamp():
                 continue
             else:
-                free_days.append((calendar_day["date_time"], calendar_day["id"]))
+                free_days.append((calendar_day["date_time"], calendar_day["id"], calendar_day["detail_url"]))
 
-        for date, calendar_id in free_days:
+        for date_time, calendar_id, detail_url in free_days:
 
-            button = datetime.strptime(date, "%d-%m-%Y %H:%M").strftime("%d-%b %H:%M")
+            button = datetime.strptime(date_time, "%d-%m-%Y %H:%M").strftime("%d-%b %H:%M")
 
-            free_schedule_days.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date}#{calendar_id}"))
+            if method == 'delete':
+                schedule_keyboard.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date_time}#{detail_url}"))
+            else:
+                schedule_keyboard.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date_time}#{calendar_id}"))
 
-        free_schedule_days.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+        schedule_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
-    return free_schedule_days
+    return schedule_keyboard
 
 
 async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
@@ -98,30 +101,32 @@ menu.add(InlineKeyboardButton('Выйти из меню', callback_data="cancel:
 user = InlineKeyboardMarkup(row_width=2)
 user.insert(InlineKeyboardButton('Клиенты', callback_data="users:clients"))
 user.insert(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
-
-search_schedule = InlineKeyboardMarkup(row_width=2)
-search_schedule.insert(InlineKeyboardButton('Продолжить', callback_data="schedule:search"))
-search_schedule.insert(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+user.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 client = InlineKeyboardMarkup()
 client.add(InlineKeyboardButton('Добавить клиента', callback_data="clients:create"))
 client.add(InlineKeyboardButton('Изменить клиента', callback_data="clients:edit"))
 client.add(InlineKeyboardButton('Удалить клиента', callback_data="clients:delete"))
+client.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 master = InlineKeyboardMarkup()
 master.add(InlineKeyboardButton('Добавить мастера', callback_data="masters:create"))
 master.add(InlineKeyboardButton('Изменить мастера', callback_data="masters:edit"))
 master.add(InlineKeyboardButton('Удалить мастера', callback_data="masters:delete"))
+master.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 schedule = InlineKeyboardMarkup(row_width=2)
 schedule.insert(InlineKeyboardButton('Добавить в расписание', callback_data="schedule:create"))
 schedule.insert(InlineKeyboardButton('Удалить из расписания', callback_data="schedule:delete"))
+schedule.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 calendar = InlineKeyboardMarkup(row_width=2)
 calendar.insert(InlineKeyboardButton('Обычный', callback_data="calendars:navigation"))
 calendar.insert(InlineKeyboardButton('Детальный', callback_data="calendars:dialog"))
+calendar.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 visit = InlineKeyboardMarkup()
 visit.add(InlineKeyboardButton('Добавить запись', callback_data="visits:create"))
 visit.add(InlineKeyboardButton('Изменить запись', callback_data="visits:edit"))
 visit.add(InlineKeyboardButton('Удалить запись', callback_data="visits:delete"))
+visit.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
