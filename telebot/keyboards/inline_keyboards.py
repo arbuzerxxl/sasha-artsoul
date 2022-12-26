@@ -47,7 +47,7 @@ async def search_schedule(master: str = None, method: str = None, month: int = N
 async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
     """Поиск пользователя в БД на основе API и вывод в окно в виде InlineKeyboard"""
 
-    users_keyboard = InlineKeyboardMarkup()
+    users_keyboard = InlineKeyboardMarkup(row_width=2)
 
     if not user_type:
         users_keyboard.insert(InlineKeyboardButton("Аргумент 'user' не указан", callback_data="cancel:cancel"))
@@ -74,11 +74,12 @@ async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
             if user_type == 'master':
                 user_full_name = user['pretty_master']
 
-            users_keyboard.add(InlineKeyboardButton(text=user_full_name, callback_data=f"{user['user']}#{user_full_name}"))
+            users_keyboard.insert(InlineKeyboardButton(text=user_full_name, callback_data=f"{user['user']}#{user_full_name}"))
+        users_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
     else:
 
-        users_keyboard.insert(InlineKeyboardButton(inline_text, callback_data="cancel:cancel"))
+        users_keyboard.add(InlineKeyboardButton(inline_text, callback_data="cancel:cancel"))
 
     return users_keyboard
 
@@ -103,16 +104,16 @@ user.insert(InlineKeyboardButton('Клиенты', callback_data="users:clients"
 user.insert(InlineKeyboardButton('Мастеры', callback_data="users:masters"))
 user.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
-client = InlineKeyboardMarkup()
-client.add(InlineKeyboardButton('Добавить клиента', callback_data="clients:create"))
-client.add(InlineKeyboardButton('Изменить клиента', callback_data="clients:edit"))
-client.add(InlineKeyboardButton('Удалить клиента', callback_data="clients:delete"))
+client = InlineKeyboardMarkup(row_width=3)
+client.insert(InlineKeyboardButton('Добавить', callback_data="clients:create"))
+client.insert(InlineKeyboardButton('Изменить', callback_data="clients:edit"))
+client.insert(InlineKeyboardButton('Удалить', callback_data="clients:delete"))
 client.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
-master = InlineKeyboardMarkup()
-master.add(InlineKeyboardButton('Добавить мастера', callback_data="masters:create"))
-master.add(InlineKeyboardButton('Изменить мастера', callback_data="masters:edit"))
-master.add(InlineKeyboardButton('Удалить мастера', callback_data="masters:delete"))
+master = InlineKeyboardMarkup(row_width=3)
+master.insert(InlineKeyboardButton('Добавить', callback_data="masters:create"))
+master.insert(InlineKeyboardButton('Изменить', callback_data="masters:edit"))
+master.insert(InlineKeyboardButton('Удалить', callback_data="masters:delete"))
 master.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 schedule = InlineKeyboardMarkup(row_width=2)

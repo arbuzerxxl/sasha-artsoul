@@ -46,6 +46,14 @@ async def make_request(method, url, data=None):
 
                 return await response.json(), response.status
 
+        elif method == "PATCH":
+
+            async with session.patch(url, data=payload, headers=headers) as response:
+
+                bot_logger.debug(f"[?] URL: [{url}] Status: [{response.status}].")
+
+                return await response.json(), response.status
+
         elif method == "POST":
 
             async with session.post(url, data=payload, headers=headers) as response:

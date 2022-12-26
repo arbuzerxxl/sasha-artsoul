@@ -35,7 +35,7 @@ user_form_keyboard = ReplyKeyboardMarkup(
 ).add(
     KeyboardButton('Фамилия')
 ).add(
-    KeyboardButton('Пароль')
+    KeyboardButton('TG ID')
 ).add(
     KeyboardButton('Статус')
 ).add(
@@ -47,8 +47,6 @@ client_status_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 ).add(
     KeyboardButton('Постоянный клиент')
-).add(
-    KeyboardButton('Обычный клиент')
 ).add(
     KeyboardButton('Первый визит')
 ).add(
