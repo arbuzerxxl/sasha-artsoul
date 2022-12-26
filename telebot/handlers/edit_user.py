@@ -83,7 +83,6 @@ async def process_select_change_edit_user(message: types.Message, state: FSMCont
         state_data['phone_number'] = state_data[message.text]['phone_number']
         state_data['full_name'] = message.text
         state_data['detail_url'] = state_data[message.text]['detail_url']
-        state_data['is_client'] = state_data[message.text]['is_client']
 
     await EditUser.set_data.set()
 
@@ -122,7 +121,7 @@ async def process_set_data_edit_user(message: types.Message, state: FSMContext) 
 async def process_request_edit_user(message: types.Message, state: FSMContext) -> types.Message:
     """Изменяет значение переданного в state поля посредством API"""
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
 
@@ -154,7 +153,7 @@ async def process_request_check_and_change_status_user(message: types.Message, s
     в случае успешного запроса изменяет 'Статус' посредством API
     """
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
 

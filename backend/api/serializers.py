@@ -16,7 +16,7 @@ class UserSerializer(ModelSerializer):
         model = get_user_model()
         queryset = model.objects.all()
         fields = ('id', 'phone_number', 'telegram_id', 'email', 'password',
-                  'last_name', 'first_name', 'is_client', 'is_superuser', 'detail_url')
+                  'last_name', 'first_name', 'is_superuser', 'is_staff', 'detail_url')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):

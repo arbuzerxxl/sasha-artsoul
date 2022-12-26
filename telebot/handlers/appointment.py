@@ -109,7 +109,7 @@ async def process_set_schedule_day(query: types.CallbackQuery, state: FSMContext
 async def process_request_appointment(message: types.Message, state: FSMContext):
     """Запрос на создание записи от клиента"""
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
 
@@ -133,12 +133,15 @@ async def process_request_appointment(message: types.Message, state: FSMContext)
 
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
+    elif status >= 400:
+
+        for error in response.values():
+            for msg in error:
+                text = f"<b>{msg}</b>"
+                await message.answer(text=text, parse_mode=types.ParseMode.HTML)
+
     else:
         bot_logger.debug("[!] Попытка зарегистрировать новую запись оказалась безуспешной.")
         msg = text("<i>На данный момент я не могу записать Вас на прием.</i>",
                    sep="\n")
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-
-        for error in response.values():
-            msg = f"<b>{error[0]}</b>"
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)

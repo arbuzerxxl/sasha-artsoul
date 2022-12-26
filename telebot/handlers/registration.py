@@ -133,7 +133,7 @@ async def process_check_full_name(message: types.Message, state: FSMContext):
             data['last_name'] = message.chat.last_name
             alphabet = string.ascii_letters + string.digits
             data['password'] = ''.join(secrets.choice(alphabet) for i in range(20))
-            data['is_client'] = True
+            data['is_staff'] = False
 
         msg = emojize(text(":pencil2: <i>Фуух.. Надеюсь я успел за Вами и все данные верны? </i>",
                            "<i>Пока вы проверяете, я немного отдохну..</i>:wine_glass: ",
@@ -205,7 +205,6 @@ async def process_last_name(message: types.Message, state: FSMContext):
             data['last_name'] = message.text
             alphabet = string.ascii_letters + string.digits
             data['password'] = ''.join(secrets.choice(alphabet) for i in range(20))
-            data['is_client'] = True
 
         await RegistrationUser.next()
 

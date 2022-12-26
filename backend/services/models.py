@@ -20,7 +20,7 @@ class Client(models.Model):
         FIRST_VISIT_CLIENT = 'Первый визит', 'Первый визит'
         __empty__ = 'Укажите тип клиента'
 
-    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_client': True},
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_staff': False},
                                 help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент', to_field='phone_number')
     user_type = models.CharField(max_length=20, choices=Clients.choices, default=Clients.FIRST_VISIT_CLIENT,
                                  verbose_name='Тип клиента', help_text='Введите тип клиента')
@@ -48,7 +48,7 @@ class Master(models.Model):
         STUDENT_MASTER = 'Ученик', 'Ученик'
         __empty__ = 'Укажите квалификалицию мастера'
 
-    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_client': False},
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_staff': True},
                                 help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер', to_field='phone_number')
     user_type = models.CharField(max_length=15, choices=Masters.choices, verbose_name='Квалификация мастера',
                                  help_text='Выберите квалификалицию мастера', null=True, blank=True)

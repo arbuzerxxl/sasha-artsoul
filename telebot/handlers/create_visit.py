@@ -130,7 +130,7 @@ async def process_set_discount(message: types.Message, state: FSMContext) -> typ
 async def process_request_visit(message: types.Message, state: FSMContext):
     """Добавление новой записи в БД на основе API."""
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
         client = state_data.pop('client_name')

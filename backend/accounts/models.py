@@ -37,17 +37,12 @@ class UserManager(BaseUserManager):
     def create_user(self, phone_number, email=None, password=None, telegram_id=None, **extra_fields):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
-        extra_fields.setdefault("is_client", True)
-
-        if extra_fields.get("is_client") is not True:  # FIXME: не важно что возвращается, пользователь все равно добавляется
-            raise ValueError("Пользователь обязательно должен иметь статус 'Клиент'")
 
         return self._create_user(phone_number, email, password, telegram_id, **extra_fields)
 
     def create_superuser(self, phone_number, email=None, password=None, telegram_id=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_client", False)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
@@ -137,11 +132,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             "Designates whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."
         ),
-    )
-    is_client = models.BooleanField(
-        "Клиент",
-        default=False,
-        help_text="Отметьте, если пользователь должен считаться клиентом.",
     )
 
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
