@@ -97,7 +97,7 @@ async def process_request_create_user(message: types.Message, state: FSMContext)
         if status == 201 and response:
 
             msg = text(f"<i>Статус пользователя <b>{response['user']}</b></i>",
-                       f"<i>изменился на {response['user_type']}</i>",
+                       f"<i>изменился на <b>{response['user_type']}</b></i>",
                        sep='\n')
 
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
@@ -110,10 +110,10 @@ async def process_request_create_user(message: types.Message, state: FSMContext)
 
     elif status >= 400:
 
-        for error in response.values():
-            for msg in error:
-                text = f"<b>{msg}</b>"
-                await message.answer(text=text, parse_mode=types.ParseMode.HTML)
+        for errors in response.values():
+            for error in errors:
+                msg = f"<b>{error}</b>"
+                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
     else:
 
