@@ -58,7 +58,7 @@ async def process_user_verification(message: types.Message, state: FSMContext):
 
     phone_number = message.contact.phone_number.replace('+7', '8')
 
-    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"phone_number": phone_number})
+    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"_phone_number": phone_number})
 
     if status == 200 and not response:
 

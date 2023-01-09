@@ -96,13 +96,6 @@ class Visit(models.Model):
         'Педикюр с покрытием (пальчики)': Decimal(2300),
     }
 
-    # Discounts = (
-    #     (Decimal('0.15'), 'Первый визит'),
-    #     (Decimal('0.35'), 'Шестой визит'),
-    #     (Decimal('500'), 'Сарафан'),
-    #     (None, 'Укажите скидку')
-    # )
-
     class Statuses(models.TextChoices):
         PRELIMINARY = 'Предварительная запись', 'Предварительная запись'
         SUCCESSFULLY = 'Успешная запись', 'Успешная запись'
@@ -136,7 +129,7 @@ class Visit(models.Model):
 
     calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, db_index=True, blank=True, limit_choices_to={'is_free': True},
                                     help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices, default='Предварительная запись',
+    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices,
                               help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')

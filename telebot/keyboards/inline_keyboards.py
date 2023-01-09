@@ -18,7 +18,7 @@ async def search_schedule(master: str = None, method: str = None, month: int = N
 
     schedule_keyboard = InlineKeyboardMarkup(row_width=3)
 
-    response, status = await make_request(method="GET", url=(URL + "api/calendar/"), data={"master": master, "is_free": True, "month": month})
+    response, status = await make_request(method="GET", url=(URL + "api/calendar/"), data={"_master": master, "_is_free": True, "_month": month})
 
     if not response:
 
@@ -99,12 +99,13 @@ async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
     return users_keyboard
 
 
-async def search_visit(month: int = None, client: str = None) -> InlineKeyboardMarkup:
+async def search_visit(month: int = None, year: int = None, client: str = None, master: str = None, ) -> InlineKeyboardMarkup:
     """Поиск записи в БД на основе API и вывод в окно в виде InlineKeyboard"""
 
     visits_keyboard = InlineKeyboardMarkup()
 
-    response, status = await make_request(method="GET", url=(URL + "api/visits/"), data={'client': client, 'month': month})
+    response, status = await make_request(method="GET", url=(URL + "api/visits/"), data={'_client': client, '_master': master,
+                                                                                         '_month': month, '_year': year})
 
     if not response:
 
@@ -116,7 +117,7 @@ async def search_visit(month: int = None, client: str = None) -> InlineKeyboardM
 
             button = visit['pretty_calendar'].split(' Мастер: ')[0][6:]
 
-            visits_keyboard.add(InlineKeyboardButton(f'{button}', callback_data=f"visits#{visit['detail_url']}"))
+            visits_keyboard.add(InlineKeyboardButton(f'{button}', callback_data=f"visit#{visit['detail_url']}"))
 
         visits_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
@@ -132,6 +133,26 @@ async def search_visit(month: int = None, client: str = None) -> InlineKeyboardM
         visits_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
     return visits_keyboard
+
+
+def visit_date():
+
+    now = datetime.now()
+
+    visit_date = InlineKeyboardMarkup(row_width=3)
+
+    visit_date.insert(InlineKeyboardButton(f"{MONTH[now.month]} {now.year}", callback_data=f"{now.month}#{now.year}"))
+
+    for i in range(1, 6):
+
+        year = now.year if now.month - i >= 0 else now.year - 1
+
+        month = MONTH[now.month - i]
+
+        visit_date.insert(InlineKeyboardButton(f"{month} {year}", callback_data=f"{MONTH.index(month) + 1}#{year}"))
+
+    return visit_date
+
 
 registration = InlineKeyboardMarkup()
 registration.add(InlineKeyboardButton('Зарегистрироваться', callback_data="menu:registration"))
@@ -182,5 +203,6 @@ visit.add(InlineKeyboardButton('Удалить запись', callback_data="vis
 visit.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
 month = InlineKeyboardMarkup(row_width=3)
+
 for i in range(1, 13):
     month.insert(InlineKeyboardButton(MONTH[i - 1], callback_data=f"month:{i}"))

@@ -82,7 +82,7 @@ async def process_set_data_edit_user(message: types.Message, state: FSMContext) 
 
         if message.text == "Статус":
 
-            response, status = await make_request(method="GET", url=state_data['url'], data={'user': state_data['user_phone']})
+            response, status = await make_request(method="GET", url=state_data['url'], data={'_user': state_data['user_phone']})
 
             state_data['detail_url'] = response[0]['detail_url']
 
@@ -93,7 +93,7 @@ async def process_set_data_edit_user(message: types.Message, state: FSMContext) 
 
         else:
 
-            response, status = await make_request(method="GET", url=(URL + 'api/users/'), data={'phone_number': state_data['user_phone']})
+            response, status = await make_request(method="GET", url=(URL + 'api/users/'), data={'_phone_number': state_data['user_phone']})
 
             state_data['detail_url'] = response[0]['detail_url']
 

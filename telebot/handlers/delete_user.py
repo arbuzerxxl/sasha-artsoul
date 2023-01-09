@@ -44,7 +44,7 @@ async def process_approve_deletion_user(query: types.CallbackQuery, state: FSMCo
         state_data["user_phone"] = user_phone
         state_data["user_name"] = user_name
 
-        response, status = await make_request(method="GET", url=(URL + 'api/users/'), data={'phone_number': state_data['user_phone']})
+        response, status = await make_request(method="GET", url=(URL + 'api/users/'), data={'_phone_number': state_data['user_phone']})
 
         state_data['detail_url'] = response[0]['detail_url']
 

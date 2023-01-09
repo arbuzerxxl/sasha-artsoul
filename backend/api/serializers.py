@@ -54,12 +54,12 @@ class VisitSerializer(ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ('client', 'calendar', 'pretty_calendar', 'service', 'service_price', 'discount', 'extra', 'extra_total', 'total', 'rating', )
+        fields = ('client', 'calendar', 'pretty_calendar', 'service', 'status', 'service_price', 'discount', 'extra', 'extra_total', 'total', 'rating', )
 
     def validate_client(self, value):
 
         try:
-            calendar = Calendar.objects.get(pk=self.initial_data['calendar'])
+            calendar = Calendar.objects.get(pk=self.instance.calendar_id)
             month = calendar.date_time.month
             any_visits = Visit.objects.filter(client=self.initial_data['client'], calendar__date_time__month=month)
             client = Client.objects.get(user=self.initial_data['client'])

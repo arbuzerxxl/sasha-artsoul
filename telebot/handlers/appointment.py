@@ -26,7 +26,7 @@ async def process_create_appointment(query: types.CallbackQuery, state: FSMConte
 
     await Appointment.set_service.set()
 
-    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"telegram_id": query.message.chat.id})
+    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"_telegram_id": query.message.chat.id})
 
     if status == 200 and response:
 
