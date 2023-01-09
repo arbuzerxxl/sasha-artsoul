@@ -53,7 +53,7 @@ def add_old_clients(request):
                 pw = "".join(list(client.get('phone_number'))[-1:-6:-1])
                 user = User.objects.create(phone_number=client.get('phone_number'), last_name=client.get('last_name'),
                                            first_name=client.get('first_name'), telegram_id=None,
-                                           is_client=True, email=None, password=pw)
+                                           email=None, password=pw)
                 Client.objects.create(user=user)
 
             except IntegrityError:

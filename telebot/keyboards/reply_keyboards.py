@@ -35,11 +35,28 @@ user_form_keyboard = ReplyKeyboardMarkup(
 ).add(
     KeyboardButton('Фамилия')
 ).add(
-    KeyboardButton('Пароль')
+    KeyboardButton('TG ID')
 ).add(
     KeyboardButton('Статус')
 ).add(
     KeyboardButton('Отмена')
+)
+
+visit_form_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True
+).add(
+    KeyboardButton('Статус')
+).add(
+    KeyboardButton('Услуга')
+).add(
+    KeyboardButton('Скидка')
+).add(
+    KeyboardButton('Доп. плата')
+).add(
+    KeyboardButton('Комментарий')
+).add(
+    KeyboardButton('Рейтинг')
 )
 
 client_status_keyboard = ReplyKeyboardMarkup(
@@ -47,8 +64,6 @@ client_status_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 ).add(
     KeyboardButton('Постоянный клиент')
-).add(
-    KeyboardButton('Обычный клиент')
 ).add(
     KeyboardButton('Первый визит')
 ).add(
@@ -90,8 +105,7 @@ statuses_keyboard = ReplyKeyboardMarkup(
     KeyboardButton('Предварительная запись')
 ).add(
     KeyboardButton('Успешная запись')
-).add(
-    KeyboardButton('Отмененная запись'))
+)
 
 services_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,

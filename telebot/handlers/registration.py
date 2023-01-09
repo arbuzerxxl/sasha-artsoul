@@ -58,7 +58,7 @@ async def process_user_verification(message: types.Message, state: FSMContext):
 
     phone_number = message.contact.phone_number.replace('+7', '8')
 
-    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"phone_number": phone_number})
+    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"_phone_number": phone_number})
 
     if status == 200 and not response:
 
@@ -133,7 +133,7 @@ async def process_check_full_name(message: types.Message, state: FSMContext):
             data['last_name'] = message.chat.last_name
             alphabet = string.ascii_letters + string.digits
             data['password'] = ''.join(secrets.choice(alphabet) for i in range(20))
-            data['is_client'] = True
+            data['is_staff'] = False
 
         msg = emojize(text(":pencil2: <i>Фуух.. Надеюсь я успел за Вами и все данные верны? </i>",
                            "<i>Пока вы проверяете, я немного отдохну..</i>:wine_glass: ",
@@ -205,7 +205,6 @@ async def process_last_name(message: types.Message, state: FSMContext):
             data['last_name'] = message.text
             alphabet = string.ascii_letters + string.digits
             data['password'] = ''.join(secrets.choice(alphabet) for i in range(20))
-            data['is_client'] = True
 
         await RegistrationUser.next()
 
@@ -261,9 +260,10 @@ async def process_request_registration_user(message: types.Message, state: FSMCo
             msg = "<i>К сожалению регистрация прервана! Наш администратор в скором времени свяжется с Вами для решения проблемы.</i>"
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
-            for error in response.values():
-                msg = f"<b>{error[0]}</b>"
-                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+            for errors in response.values():
+                for error in errors:
+                    msg = f"<b>{error}</b>"
+                    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
             admin_msg = f"Пользователь: t.me/+7{response['phone_number'][1:]} не может зарегистрироваться"
             await sender_to_admin(msg=admin_msg)

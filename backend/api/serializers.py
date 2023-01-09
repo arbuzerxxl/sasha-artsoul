@@ -1,11 +1,27 @@
-from datetime import datetime
-import locale
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField, CharField, ValidationError)
+from rest_framework.serializers import (ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField, ValidationError, Field)
 from services.models import Visit, Client, Master, Calendar
 
-locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+
+class ChoicesField(Field):
+
+    def __init__(self, choices, **kwargs):
+        self._choices = choices
+        super(ChoicesField, self).__init__(**kwargs)
+
+    def to_representation(self, obj):
+
+        for choice in self._choices.choices:
+            if choice[0] == obj:
+                return choice[1]
+        return None
+
+    def to_internal_value(self, data):
+
+        for choice in self._choices.choices:
+            if choice[1] == data:
+                return choice[0]
+        return None
 
 
 class UserSerializer(ModelSerializer):
@@ -16,7 +32,7 @@ class UserSerializer(ModelSerializer):
         model = get_user_model()
         queryset = model.objects.all()
         fields = ('id', 'phone_number', 'telegram_id', 'email', 'password',
-                  'last_name', 'first_name', 'is_client', 'is_superuser', 'detail_url')
+                  'last_name', 'first_name', 'is_superuser', 'is_staff', 'detail_url')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -34,15 +50,16 @@ class UserSerializer(ModelSerializer):
 class VisitSerializer(ModelSerializer):
 
     pretty_calendar = PrimaryKeyRelatedField(read_only=True, source='calendar.__str__')
+    discount = ChoicesField(choices=Visit.Discounts)
 
     class Meta:
         model = Visit
-        fields = ('client', 'calendar', 'pretty_calendar', 'service', 'service_price', 'extra', 'extra_total', 'total', 'rating', )
+        fields = ('client', 'calendar', 'pretty_calendar', 'service', 'status', 'service_price', 'discount', 'extra', 'extra_total', 'total', 'rating', )
 
     def validate_client(self, value):
 
         try:
-            calendar = Calendar.objects.get(pk=self.initial_data['calendar'])
+            calendar = Calendar.objects.get(pk=self.instance.calendar_id)
             month = calendar.date_time.month
             any_visits = Visit.objects.filter(client=self.initial_data['client'], calendar__date_time__month=month)
             client = Client.objects.get(user=self.initial_data['client'])

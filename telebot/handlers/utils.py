@@ -42,7 +42,15 @@ async def make_request(method, url, data=None):
 
             async with session.get(url, data=payload, headers=headers) as response:
 
-                bot_logger.info(f"[?] URL: [{url}] Status: [{response.status}].")
+                bot_logger.debug(f"[?] URL: [{url}] Status: [{response.status}].")
+
+                return await response.json(), response.status
+
+        elif method == "PATCH":
+
+            async with session.patch(url, data=payload, headers=headers) as response:
+
+                bot_logger.debug(f"[?] URL: [{url}] Status: [{response.status}].")
 
                 return await response.json(), response.status
 
@@ -50,6 +58,14 @@ async def make_request(method, url, data=None):
 
             async with session.post(url, data=payload, headers=headers) as response:
 
-                bot_logger.info(f"[?] URL: [{url}] Status: [{response.status}].")
+                bot_logger.debug(f"[?] URL: [{url}] Status: [{response.status}].")
 
                 return await response.json(), response.status
+
+        elif method == "DELETE":
+
+            async with session.delete(url, data=payload, headers=headers) as response:
+
+                bot_logger.debug(f"[?] URL: [{url}] Status: [{response.status}].")
+
+                return response.status

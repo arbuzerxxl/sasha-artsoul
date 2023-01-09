@@ -17,6 +17,6 @@ class IsClientFilter(BoundFilter):
 
     async def check(self, message: types.Message) -> bool:
 
-        response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"telegram_id": message.from_id})
+        response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"_telegram_id": message.from_id})
 
         return False if status == 200 and not response else True

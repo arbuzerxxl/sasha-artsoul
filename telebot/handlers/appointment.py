@@ -7,7 +7,7 @@ from loader import disp, bot
 from logger import bot_logger
 from settings import URL
 from keyboards.callbacks import menu_callbalck
-from keyboards.inline_keyboards import search_user, free_schedule_days
+from keyboards.inline_keyboards import search_user, search_schedule
 from keyboards.reply_keyboards import services_keyboard, continue_cancel_keyboard
 from handlers.utils import make_request
 
@@ -26,7 +26,7 @@ async def process_create_appointment(query: types.CallbackQuery, state: FSMConte
 
     await Appointment.set_service.set()
 
-    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"telegram_id": query.message.chat.id})
+    response, status = await make_request(method="GET", url=(URL + "api/users/"), data={"_telegram_id": query.message.chat.id})
 
     if status == 200 and response:
 
@@ -57,7 +57,7 @@ async def process_set_service(message: types.Message, state: FSMContext) -> type
 
     msg = "<i>Выберите своего мастера:</i>"
 
-    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=search_user)
+    await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=await search_user(user_type='master'))
 
 
 @disp.callback_query_handler(lambda c: re.fullmatch(
@@ -77,11 +77,8 @@ async def process_set_master_schedule(query: types.CallbackQuery, state: FSMCont
 
     msg = text(f"<i>Выберите дату и время</i>")
 
-    await bot.send_message(chat_id=query.message.chat.id,
-                           text=msg,
-                           parse_mode=types.ParseMode.HTML,
-                           reply_markup=await free_schedule_days(master=master_phone)
-                           )
+    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML,
+                           reply_markup=await search_schedule(master=master_phone))
 
 
 @disp.callback_query_handler(lambda c: re.fullmatch(
@@ -112,7 +109,7 @@ async def process_set_schedule_day(query: types.CallbackQuery, state: FSMContext
 async def process_request_appointment(message: types.Message, state: FSMContext):
     """Запрос на создание записи от клиента"""
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
     async with state.proxy() as state_data:
 
@@ -136,12 +133,15 @@ async def process_request_appointment(message: types.Message, state: FSMContext)
 
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
+    elif status >= 400:
+
+        for errors in response.values():
+            for error in errors:
+                msg = f"<b>{error}</b>"
+                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
     else:
         bot_logger.debug("[!] Попытка зарегистрировать новую запись оказалась безуспешной.")
         msg = text("<i>На данный момент я не могу записать Вас на прием.</i>",
                    sep="\n")
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-
-        for error in response.values():
-            msg = f"<b>{error[0]}</b>"
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)

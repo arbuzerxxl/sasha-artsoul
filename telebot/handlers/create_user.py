@@ -1,56 +1,34 @@
-import ujson
-import requests
+import re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import text
-from loader import disp, bot
+from loader import disp
 from logger import bot_logger
 from settings import URL
-from handlers.utils import authentication
-from keyboards.callbacks import client_callback, master_callback
+from handlers.utils import make_request
 from keyboards.reply_keyboards import continue_cancel_keyboard
 
 
 class CreateUser(StatesGroup):
-    set_data = State()
     approve_data = State()
     request_data = State()
 
 
-@disp.callback_query_handler(client_callback.filter(action="create"))
-async def process_create_client(query: types.CallbackQuery, state: FSMContext):
+@disp.callback_query_handler(lambda c: re.fullmatch(pattern=r'^(clients|masters):create$', string=c.data))
+async def process_create_user(query: types.CallbackQuery, state: FSMContext):
 
     await query.message.delete_reply_markup()
 
-    await CreateUser.set_data.set()
-    async with state.proxy() as state_data:
-        state_data['is_client'] = True
-
-    msg = text(f"<i>Вы хотите добавить нового клиента, верно?</i>")
-
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
-
-
-@disp.callback_query_handler(master_callback.filter(action="create"))
-async def process_create_master(query: types.CallbackQuery, state: FSMContext):
-
-    await query.message.delete_reply_markup()
-
-    await CreateUser.set_data.set()
+    URLS = {
+        'clients': URL + "api/clients/",
+        'masters': URL + "api/masters/"
+    }
 
     async with state.proxy() as state_data:
-        state_data['is_client'] = False
-
-    msg = text(f"<i>Вы хотите добавить нового мастера, верно?</i>")
-
-    await bot.send_message(chat_id=query.message.chat.id, text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
-
-
-@disp.message_handler(state=CreateUser.set_data)
-async def process_create_user(message: types.Message, state: FSMContext):
-
-    await CreateUser.next()
+        state_data['url'] = URLS.get(query.data.split(":")[0])
+        state_data['user_type'] = 'Первый визит' if query.data.split(":")[0] == 'clients' else 'Топ-мастер'
+        state_data['is_staff'] = True if query.data.split(":")[0] == 'masters' else False
 
     msg = text(f"<i>Необходимо ввести данные в следующем порядке без запятых:</i>",
                f"<b>Имя Фамилия Номер телефона Пароль</b>",
@@ -58,24 +36,30 @@ async def process_create_user(message: types.Message, state: FSMContext):
                f"Иван Иванов 89991112233 ivan2233",
                sep='\n')
 
-    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+    await query.message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+    await CreateUser.approve_data.set()
 
 
 @disp.message_handler(state=CreateUser.approve_data)
 async def process_create_user(message: types.Message, state: FSMContext):
+
     response = message.text.split(" ")
+
     async with state.proxy() as state_data:
         state_data['first_name'] = response[0]
         state_data['last_name'] = response[1]
         state_data['phone_number'] = response[2]
         state_data['password'] = response[3]
+
         await CreateUser.next()
+
         msg = text(f"<i>Все данные верны?</i>",
                    f"<b>Имя: </b> {state_data['first_name']}",
                    f"<b>Фамилия: </b> {state_data['last_name']}",
                    f"<b>Номер телефона: </b> {state_data['phone_number']}",
-                   f"<b>Пароль: </b> <span class='tg-spoiler'>{state_data['password']}</span>",
                    sep='\n')
+
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=continue_cancel_keyboard)
 
 
@@ -83,54 +67,56 @@ async def process_create_user(message: types.Message, state: FSMContext):
 async def process_request_create_user(message: types.Message, state: FSMContext):
     """Добавление нового пользователя в БД на основе API."""
 
-    bot_logger.info(f"[?] Обработка события {message.text} от {message.chat.last_name} {message.chat.first_name}")
+    bot_logger.info(f"[?] Обработка события от {message.chat.last_name} {message.chat.first_name}")
 
-    async with state.proxy():
+    async with state.proxy() as state_data:
 
-        state_data = await state.get_data()
+        url = state_data.pop("url")
+
+        user_type = state_data.pop("user_type")
+
+        data = await state.get_data()
 
     await state.finish()
 
-    token = authentication()
-    url = URL + "api/users/"
-    headers = {'Content-Type': 'application/json', 'Authorization': token}
-    payload = ujson.dumps(state_data)
-    response = requests.request("POST", url, headers=headers, data=payload)
-    bot_logger.info(f"[?] Запрос по адресу [{url}]. Код ответа: [{response.status_code}]. Содержимое: [{response.text}].")
-    response_data = ujson.loads(response.content)
+    response, status = await make_request(method="POST", url=(URL + "api/users/"), data=data)
 
-    if response.status_code == 201 and response.content:
-        bot_logger.info(
-            f"[+] Зарегистрирован новый пользователь. ID: {response_data['id']}, TG: {response_data['telegram_id']}, PNONE: {response_data['phone_number']}"
-        )
+    if status == 201 and response:
 
-        data = {"user": response_data['phone_number']}
+        bot_logger.info(f"[+] Зарегистрирован новый пользователь {response['phone_number']} {response['last_name']} {response['first_name']}")
 
-        if state_data["is_client"]:
-            url = URL + "api/clients/"
-            data["user_type"] = "Обычный клиент"
-        else:
-            url = URL + "api/masters/"
-            data["user_type"] = "Топ-мастер"
+        msg = text("<i>Зарегистрирован новый пользователь:</i>",
+                   f"<b>{response['last_name']} {response['first_name']}</b>",
+                   f"<b>{response['phone_number']}</b>",
+                   sep='\n')
 
-        payload = ujson.dumps(data)
-        response = requests.request("POST", url, headers=headers, data=payload)
-
-        if response.status_code == 201 and response.content:
-            bot_logger.info(f"[+] Статус пользователя {response_data['phone_number']} изменен на {data['user_type']}")
-            msg = "<i>Операция успешно завершена!</i>"
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-
-        else:
-            bot_logger.info(f"[-] Попытка изменить статус нового пользователя {response_data['phone_number']} оказалась безуспешной.")
-            msg = "<i>Пользователь был добавлен, но статус не изменен!</i>"
-            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
-
-    else:
-        bot_logger.debug("[!] Попытка зарегистрировать нового пользователя оказалась безуспешной.")
-        msg = f"<code>Ошибка при вводе данных. Запрос отклонен: [{response.status_code}]</code>"
         await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
-        for error in response_data.values():
-            msg = f"<b>{error[0]}</b>"
+        response, status = await make_request(method="POST", url=url, data={'user': response['phone_number'], 'user_type': user_type})
+
+        if status == 201 and response:
+
+            msg = text(f"<i>Статус пользователя <b>{response['user']}</b></i>",
+                       f"<i>изменился на <b>{response['user_type']}</b></i>",
+                       sep='\n')
+
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+        else:
+
+            bot_logger.debug(f"[!] Попытка изменить статус пользователя оказалась безуспешной [{status}]")
+            msg = f"<code>Попытка изменить статус пользователя оказалась безуспешной [{status}]</code>"
+            await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+    elif status >= 400:
+
+        for errors in response.values():
+            for error in errors:
+                msg = f"<b>{error}</b>"
+                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+
+    else:
+
+        bot_logger.debug(f"[!] Попытка зарегистрировать нового пользователя оказалась безуспешной [{status}]")
+        msg = f"<code>Попытка зарегистрировать нового пользователя оказалась безуспешной [{status}]</code>"
+        await message.answer(text=msg, parse_mode=types.ParseMode.HTML)

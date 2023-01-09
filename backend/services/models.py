@@ -20,7 +20,7 @@ class Client(models.Model):
         FIRST_VISIT_CLIENT = 'Первый визит', 'Первый визит'
         __empty__ = 'Укажите тип клиента'
 
-    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_client': True},
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_staff': False},
                                 help_text='Выберите зарегистрированного пользователя', verbose_name='Клиент', to_field='phone_number')
     user_type = models.CharField(max_length=20, choices=Clients.choices, default=Clients.FIRST_VISIT_CLIENT,
                                  verbose_name='Тип клиента', help_text='Введите тип клиента')
@@ -48,7 +48,7 @@ class Master(models.Model):
         STUDENT_MASTER = 'Ученик', 'Ученик'
         __empty__ = 'Укажите квалификалицию мастера'
 
-    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_client': False},
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, limit_choices_to={'is_staff': True},
                                 help_text='Укажите зарегистрированного пользователя', verbose_name='Мастер', to_field='phone_number')
     user_type = models.CharField(max_length=15, choices=Masters.choices, verbose_name='Квалификация мастера',
                                  help_text='Выберите квалификалицию мастера', null=True, blank=True)
@@ -120,16 +120,16 @@ class Visit(models.Model):
         BAD = 1, 'Ужасно'
         __empty__ = 'Укажите оценку'
 
-    class Discounts(Decimal, models.Choices):
+    class Discounts(Decimal, models.Choices):  # TODO: скидка не работает в API
 
-        FIRST_VISIT = Decimal('0.15'), 'Первый визит'
+        FIRST_VISIT = '0.15', 'Первый визит'
         SIX_VISIT = '0.35', 'Шестой визит'
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
 
     calendar = models.OneToOneField('Calendar', on_delete=models.PROTECT, unique=True, db_index=True, blank=True, limit_choices_to={'is_free': True},
                                     help_text='Необходимо указать. Укажите дату и время записи', verbose_name='Дата и время записи')
-    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices, default='Предварительная запись',
+    status = models.CharField(max_length=30, db_index=True, choices=Statuses.choices,
                               help_text='Необходимо указать.', verbose_name='Тип записи')
     service = models.CharField(max_length=255, choices=Services.choices, help_text='Необходимо указать.', verbose_name='Тип услуги')
     service_price = models.DecimalField(max_digits=6, decimal_places=2, editable=False, verbose_name='Стоимость услуги')
@@ -183,7 +183,7 @@ class Visit(models.Model):
         else:
             self.service_price = self.SERVICE_PRICES[self.service]
 
-        if self.isFirstVisit():  # TODO: проблема с отображением занятости календаря и предварительных записей
+        if self.isFirstVisit():
             self.discount = self.Discounts.FIRST_VISIT
 
         if not self.discount:
