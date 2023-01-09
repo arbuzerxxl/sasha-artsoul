@@ -5,6 +5,7 @@ from .create_user import disp
 from .edit_user import disp
 from .delete_user import disp
 from .create_visit import disp
+from .edit_visit import disp
 from .create_schedule import disp
 from .delete_schedule import disp
 

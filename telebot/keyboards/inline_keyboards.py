@@ -1,25 +1,36 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import locale
+import calendar as clndr
 from datetime import datetime
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from handlers.utils import make_request
 from settings import URL
+
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+MONTH = ('Янв', 'Февр', 'Март',
+         'Апр', 'Май', 'Июнь',
+         'Июль', 'Авг', 'Сент',
+         'Окт', 'Нояб', 'Дек')
 
 
 async def search_schedule(master: str = None, method: str = None, month: int = None) -> InlineKeyboardMarkup:
 
-    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
-
-    month = datetime.now().month
+    month = month if month else datetime.now().month
 
     schedule_keyboard = InlineKeyboardMarkup(row_width=3)
 
     response, status = await make_request(method="GET", url=(URL + "api/calendar/"), data={"master": master, "is_free": True, "month": month})
 
-    if status >= 400 or not response:
+    if not response:
 
         schedule_keyboard.insert(InlineKeyboardButton('Доступных окон не найдено', callback_data="cancel:cancel"))
 
-    else:
+    elif status >= 400:
+
+        for errors in response.values():
+            for error in errors:
+                schedule_keyboard.add(InlineKeyboardButton(f'{error}', callback_data="cancel:cancel"))
+
+    elif status == 200 and response:
 
         free_days = []
 
@@ -38,6 +49,10 @@ async def search_schedule(master: str = None, method: str = None, month: int = N
                 schedule_keyboard.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date_time}#{detail_url}"))
             else:
                 schedule_keyboard.insert(InlineKeyboardButton(f'{button}', callback_data=f"{date_time}#{calendar_id}"))
+
+        schedule_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+    else:
 
         schedule_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
 
@@ -83,6 +98,40 @@ async def search_user(user_type: str = None) -> InlineKeyboardMarkup:
 
     return users_keyboard
 
+
+async def search_visit(month: int = None, client: str = None) -> InlineKeyboardMarkup:
+    """Поиск записи в БД на основе API и вывод в окно в виде InlineKeyboard"""
+
+    visits_keyboard = InlineKeyboardMarkup()
+
+    response, status = await make_request(method="GET", url=(URL + "api/visits/"), data={'client': client, 'month': month})
+
+    if not response:
+
+        visits_keyboard.insert(InlineKeyboardButton('Доступных записей не найдено', callback_data="cancel:cancel"))
+
+    elif status == 200 and response:
+
+        for visit in response:
+
+            button = visit['pretty_calendar'].split(' Мастер: ')[0][6:]
+
+            visits_keyboard.add(InlineKeyboardButton(f'{button}', callback_data=f"visits#{visit['detail_url']}"))
+
+        visits_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+    elif status >= 400:
+
+        for errors in response.values():
+            for error in errors:
+                msg = f"<b>{error}</b>"
+                visits_keyboard.add(InlineKeyboardButton(f'{msg}', callback_data="cancel:cancel"))
+
+    else:
+
+        visits_keyboard.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+    return visits_keyboard
 
 registration = InlineKeyboardMarkup()
 registration.add(InlineKeyboardButton('Зарегистрироваться', callback_data="menu:registration"))
@@ -131,3 +180,7 @@ visit.add(InlineKeyboardButton('Добавить запись', callback_data="v
 visit.add(InlineKeyboardButton('Изменить запись', callback_data="visits:edit"))
 visit.add(InlineKeyboardButton('Удалить запись', callback_data="visits:delete"))
 visit.add(InlineKeyboardButton('Отмена', callback_data="cancel:cancel"))
+
+month = InlineKeyboardMarkup(row_width=3)
+for i in range(1, 13):
+    month.insert(InlineKeyboardButton(MONTH[i - 1], callback_data=f"month:{i}"))

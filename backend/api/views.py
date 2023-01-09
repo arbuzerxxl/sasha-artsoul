@@ -69,11 +69,13 @@ class VisitViewSet(ModelViewSet):
                 return self.model.objects.filter(calendar__date_time__day=self.request.data.get('day'),
                                                  calendar__date_time__month=self.request.data.get('month'),
                                                  calendar__date_time__year=self.request.data.get('year'))
+            # админ: просмотр записей клиента за определенный месяц
+            elif self.request.data.get('client') and self.request.data.get('month'):
+                return self.model.objects.filter(calendar__date_time__month=self.request.data.get('month'),
+                                                 client=self.request.data.get('client'))
             # админ: просмотр записей по статусам
             elif self.request.data.get('status'):
                 return self.model.objects.filter(status=self.request.data.get('status'))
-            # админ: просмотр нагруженности по дням за определенный месяц
-
             # отображение всех записей в БД
             else:
                 return self.model.objects.all()

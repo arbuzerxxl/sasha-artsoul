@@ -74,7 +74,7 @@ async def process_request_delete_user(message: types.Message, state: FSMContext)
         else:
 
             bot_logger.info(f"[-] Попытка удалить пользователя {state_data['user_name']} оказалась безуспешной [{status}]")
-            msg = f"<code>Попытка удалить пользователя <b>{state_data['user_name']}</b> оказалась безуспешной [{status}]<code>"
+            msg = f"<code>Попытка удалить пользователя <b>{state_data['user_name']}</b> оказалась безуспешной [{status}]</code>"
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML, reply_markup=types.ReplyKeyboardRemove())
 
     await state.finish()

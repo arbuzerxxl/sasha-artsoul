@@ -96,6 +96,13 @@ class Visit(models.Model):
         'Педикюр с покрытием (пальчики)': Decimal(2300),
     }
 
+    # Discounts = (
+    #     (Decimal('0.15'), 'Первый визит'),
+    #     (Decimal('0.35'), 'Шестой визит'),
+    #     (Decimal('500'), 'Сарафан'),
+    #     (None, 'Укажите скидку')
+    # )
+
     class Statuses(models.TextChoices):
         PRELIMINARY = 'Предварительная запись', 'Предварительная запись'
         SUCCESSFULLY = 'Успешная запись', 'Успешная запись'
@@ -120,9 +127,9 @@ class Visit(models.Model):
         BAD = 1, 'Ужасно'
         __empty__ = 'Укажите оценку'
 
-    class Discounts(Decimal, models.Choices):
+    class Discounts(Decimal, models.Choices):  # TODO: скидка не работает в API
 
-        FIRST_VISIT = Decimal('0.15'), 'Первый визит'
+        FIRST_VISIT = '0.15', 'Первый визит'
         SIX_VISIT = '0.35', 'Шестой визит'
         TALK = '500.00', 'Сарафан'
         __empty__ = 'Укажите скидку'
@@ -183,7 +190,7 @@ class Visit(models.Model):
         else:
             self.service_price = self.SERVICE_PRICES[self.service]
 
-        if self.isFirstVisit():  # TODO: проблема с отображением занятости календаря и предварительных записей
+        if self.isFirstVisit():
             self.discount = self.Discounts.FIRST_VISIT
 
         if not self.discount:

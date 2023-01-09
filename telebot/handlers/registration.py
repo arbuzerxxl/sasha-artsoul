@@ -260,9 +260,10 @@ async def process_request_registration_user(message: types.Message, state: FSMCo
             msg = "<i>К сожалению регистрация прервана! Наш администратор в скором времени свяжется с Вами для решения проблемы.</i>"
             await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
-            for error in response.values():
-                msg = f"<b>{error[0]}</b>"
-                await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
+            for errors in response.values():
+                for error in errors:
+                    msg = f"<b>{error}</b>"
+                    await message.answer(text=msg, parse_mode=types.ParseMode.HTML)
 
             admin_msg = f"Пользователь: t.me/+7{response['phone_number'][1:]} не может зарегистрироваться"
             await sender_to_admin(msg=admin_msg)
